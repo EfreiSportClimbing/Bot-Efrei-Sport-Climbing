@@ -1,5 +1,4 @@
 const { Client, Intents, MessageEmbed } = require('discord.js');
-const { clientId, guildId,token } = require("./config.json");
 const cron =  require('cron');
 const { addOne,removeOne } = require( './firestore');
 // Create a new client instance
@@ -16,7 +15,7 @@ client.once('ready', () => {
 	console.log('Ready!');
 
     let scheduledMessage = new cron.CronJob('0 0 0 * * 1',async () => {
-        const guild = client.guilds.cache.get(guildId)
+        const guild = client.guilds.cache.get(process.env.guildId)
         const channel = guild.channels.cache.get('856168569522618369')
         const embedMessage = new MessageEmbed()
         	.setTitle('Pensez bien à vous inscrire 😉')
@@ -67,4 +66,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 // Login to Discord with your client's token
-client.login(token);
+client.login(process.env.token);
