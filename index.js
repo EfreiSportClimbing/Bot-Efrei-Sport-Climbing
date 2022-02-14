@@ -17,7 +17,7 @@ client.once('ready', () => {
 
     let scheduledMessage = new cron.CronJob('0 0 0 * * 1',async () => {
         const guild = client.guilds.cache.get(guildId)
-        const channel = guild.channels.cache.get('934805065745715243')
+        const channel = guild.channels.cache.get('856168569522618369')
         const embedMessage = new MessageEmbed()
         	.setTitle('Pensez bien à vous inscrire 😉')
             .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png')
