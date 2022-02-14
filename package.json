@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "author": "",
+  "author": "Unaxe",
   "license": "ISC",
   "dependencies": {
     "@discordjs/builders": "^0.11.0",
