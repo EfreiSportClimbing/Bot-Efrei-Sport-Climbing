@@ -38,6 +38,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			return;
 		}
 	}
+    const guild = client.guilds.cache.get(process.env.GUILDID)
+    const channel = guild.channels.cache.get('856168569522618369')
+    channel.messages.fetch({ limit: 1 }).then(messages => {
+        message= messages.first();
+    }).catch(console.error);
     if(user.id !== '934804613377450016' ){
         if (reaction.message === message) {
             if (reacts.find((react) => react === reaction._emoji.name)!= null){
@@ -56,6 +61,11 @@ client.on('messageReactionRemove', async (reaction, user) => {
 			return;
 		}
 	}
+    const guild = client.guilds.cache.get(process.env.GUILDID)
+    const channel = guild.channels.cache.get('856168569522618369')
+    channel.messages.fetch({ limit: 1 }).then(messages => {
+        message = messages.first();
+    }).catch(console.error);
     if(user.id !== '934804613377450016' ){
         if (reaction.message === message) {
             if (reacts.find((react) => react === reaction._emoji.name)!= null){

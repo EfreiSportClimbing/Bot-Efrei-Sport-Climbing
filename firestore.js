@@ -13,6 +13,7 @@ async function addOne (user) {
                 user: user.username
             }
         ).then(() => console.log("user created"))
+        .catch(() => console.log("failed to create user"))
 });
 }
 
@@ -28,6 +29,7 @@ async function removeOne (user) {
                 user: user.username
             }
         ).then(() => console.log("user created"))
+        .catch(() => console.log("failed to remove user"))
 });
 }
 
