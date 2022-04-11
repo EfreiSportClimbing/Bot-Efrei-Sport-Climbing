@@ -1,6 +1,7 @@
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const cron =  require('cron');
 const { addOne,removeOne } = require( './firestore');
+import { token, guildId, clientId } from './config';
 // Create a new client instance
 const client = new Client({ 
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
@@ -15,7 +16,7 @@ client.once('ready', () => {
 	console.log('Ready!');
 
     let scheduledMessage = new cron.CronJob('0 0 0 * * 1',async () => {
-        const guild = client.guilds.cache.get(process.env.GUILDID)
+        const guild = client.guilds.cache.get(guildId)
         const channel = guild.channels.cache.get('856168569522618369')
         const embedMessage = new MessageEmbed()
         	.setTitle('Pensez bien à vous inscrire 😉')
@@ -38,7 +39,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			return;
 		}
 	}
-    const guild = client.guilds.cache.get(process.env.GUILDID)
+    const guild = client.guilds.cache.get(guildId)
     const channel = guild.channels.cache.get('856168569522618369')
     channel.messages.fetch({ limit: 1 }).then(messages => {
         message= messages.first();
@@ -61,7 +62,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 			return;
 		}
 	}
-    const guild = client.guilds.cache.get(process.env.GUILDID)
+    const guild = client.guilds.cache.get(guildId)
     const channel = guild.channels.cache.get('856168569522618369')
     channel.messages.fetch({ limit: 1 }).then(messages => {
         message = messages.first();
@@ -76,4 +77,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
 });
 
 // Login to Discord with your client's token
-client.login(process.env.TOKEN);
+client.login(token);
