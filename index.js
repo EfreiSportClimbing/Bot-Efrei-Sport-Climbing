@@ -23,7 +23,7 @@ client.once('ready', () => {
             .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png')
             .setDescription(':regional_indicator_a: Lundi 14h\n\n:regional_indicator_b: Lundi 18h\n\n:regional_indicator_c: Mardi 14h\n\n:regional_indicator_d: Mardi 18h\n\n:regional_indicator_e: Mercredi 14h\n\n:regional_indicator_f: Mercredi 18h\n\n:regional_indicator_g: Jeudi 14h\n\n:regional_indicator_h: Jeudi 18h\n\n:regional_indicator_i: Vendredi 14h\n\n:regional_indicator_j: Vendredi 18h\n\n:regional_indicator_k: Samedi 14h\n\n:regional_indicator_l: Samedi 18h\n\n:regional_indicator_m: Dimanche 14h\n\n:regional_indicator_n: Dimanche 18h')
             .setColor('GOLD')
-            await channel.send('**Heyyy, Sondage hebdo** <@752444499795640360>:')
+            await channel.send('**Heyyy, Sondage hebdo** <@&752444499795640360>:')
             message = await channel.send({embeds : [embedMessage]})
             reacts.map((react)=> message.react(react))
     })
