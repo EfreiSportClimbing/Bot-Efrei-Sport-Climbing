@@ -1,7 +1,7 @@
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const cron =  require('cron');
 const { addOne,removeOne } = require( './firestore');
-import { token, guildId, clientId } from './config';
+const { token, guildId, clientId } =  require('./config.json');
 // Create a new client instance
 const client = new Client({ 
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
