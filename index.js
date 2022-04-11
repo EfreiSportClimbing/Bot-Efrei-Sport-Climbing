@@ -47,6 +47,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if(user.id !== '934804613377450016' ){
         if (reaction.message === message) {
             if (reacts.find((react) => react === reaction._emoji.name)!= null){
+                console.log("hhe")
                 addOne(user)
             }
         }

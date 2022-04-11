@@ -13,7 +13,7 @@ async function addOne (user) {
                 user: user.username
             }
         ).then(() => console.log("user created"))
-        .catch(() => console.log("failed to create user"))
+        .catch(() => console.log("failed to remove user"))
 });
 }
 
@@ -25,7 +25,7 @@ async function removeOne (user) {
     .catch(async () => {
         await firestore.collection("users").doc(user.id).set(
             {
-                presence:1,
+                presence:0,
                 user: user.username
             }
         ).then(() => console.log("user created"))
