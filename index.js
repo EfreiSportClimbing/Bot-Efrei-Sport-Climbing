@@ -169,7 +169,7 @@ client.on('interactionCreate', async interaction => {
         }
         addOne(interaction.user)
         message.edit({embeds : [newEmbed]})
-		await interaction.reply(`Ajout d'une scéance à ${salle} le ${date} à ${heure}heure`);
+		await interaction.reply(`Ajout d'une séance à ${salle} le ${date} à ${heure}heure`);
 	}
 });
 
