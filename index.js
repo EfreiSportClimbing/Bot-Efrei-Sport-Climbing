@@ -12,14 +12,75 @@ const client = new Client({
 const reacts = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳']
 let message = null
 const channels = [
-    {name : 'antreblock', channelId : '955472985735721010', channelEmbedId : '965012209627459604'},
-    {name : 'arkose' , channelId : "955473048444756048", channelEmbedId : '965012209740681297'},
+    {name : 'antreblock', channelId : '955472985735721010', channelEmbedId : '965621047057604648'},
+    {name : 'arkose' , channelId : "955473048444756048", channelEmbedId : '965621047133093898'},
     {name :"climb-up", channelId : "955473017746628628", channelEmbedId : '965012209690345542'},
     {name : "vertical-art", channelId : "955473088005431396", channelEmbedId : '965012209690374214' }
 ]
 
+
+const sendMessages = () => {
+    channels.forEach(async (channel) => {
+        const embed = new MessageEmbed()
+            .setTitle(`${channel.name}`)
+            .setColor('GOLD')
+            .setDescription(`Horaires prévues à ${channel.name}`)
+            .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png');
+        const guild = client.guilds.cache.get(guildId)
+        const chan = guild.channels.cache.get(channel.channelId);
+        await chan.send({embeds : [embed]});
+    })
+}
+
+const deleteSceance = (day) => {
+    channels.forEach(async (channel) => {
+        const guild = client.guilds.cache.get(guildId)
+        const chan = guild.channels.cache.get(channel.channelId);
+        const message = await channelInstance.messages.fetch(channel.channelEmbedId)
+        const embed = message.embeds[0]
+        const fields = embed.fields
+        fields = fields.filter(field => !field.name.includes(day))
+        embed.fields = fields
+        await message.edit({embeds : [embed]})
+    })
+}
+
+
+
+
+
 client.once('ready', () => {
 	console.log('Ready!');
+    // sendMessages()
+    let deleteMonday = new cron.CronJob('0 0 0 * * 2', () => {
+        deleteSceance('lundi')
+    }, null, true, 'Europe/Paris');
+    let deleteTuesday = new cron.CronJob('0 0 0 * * 3', () => {
+        deleteSceance('mardi')
+    }, null, true, 'Europe/Paris');
+    let deleteWednesday = new cron.CronJob('0 0 0 * * 4', () => {
+        deleteSceance('mercredi')
+    }, null, true, 'Europe/Paris');
+    let deleteThursday = new cron.CronJob('0 0 0 * * 5', () => {
+        deleteSceance('jeudi')
+    }, null, true, 'Europe/Paris');
+    let deleteFriday = new cron.CronJob('0 0 0 * * 6', () => {
+        deleteSceance('vendredi')
+    }, null, true, 'Europe/Paris');
+    let deleteSaturday = new cron.CronJob('0 0 0 * * 0', () => {
+        deleteSceance('samedi')
+    }, null, true, 'Europe/Paris');
+    let deleteSunday = new cron.CronJob('0 0 0 * * 1', () => {
+        deleteSceance('dimanche')
+    }, null, true, 'Europe/Paris');
+    deleteMonday.start();
+    deleteTuesday.start();
+    deleteWednesday.start();
+    deleteThursday.start();
+    deleteFriday.start();
+    deleteSaturday.start();
+    deleteSunday.start();
+
     // const guild = client.guilds.cache.get(guildId)
     // let scheduledMessage = new cron.CronJob('0 19 0 * * 6',async () => {
     //     const channel = guild.channels.cache.get('856168569522618369')
@@ -97,14 +158,14 @@ client.on('interactionCreate', async interaction => {
         const user = interaction.user.username
         
         const newEmbed = new MessageEmbed(embed)
-        const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}**`)
+        const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}h**`)
         if (field) {
             if (field.value.includes(user)){
                 return interaction.reply('Vous êtes déjà inscrit à cette séance')
             }
             field.value += `, *${user}*`
         }else {
-            newEmbed.addField(`**${date}** **${heure}**`, `${user}`)
+            newEmbed.addField(`**${date}** **${heure}h**`, `*${user}*`)
         }
         addOne(interaction.user)
         message.edit({embeds : [newEmbed]})
