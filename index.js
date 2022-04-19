@@ -173,13 +173,11 @@ client.on('interactionCreate', async interaction => {
         const newEmbed = new MessageEmbed(embed);
         const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}h**`);
         if (field) {
-            console.log('1',field)
             if (!field.value.includes(user)) {
                 return interaction.reply({content: 'Vous n\'êtes pas inscrit à cette séance', ephemeral: true});
             }
             field.value = field.value.replace(`, *${user}*`, '');
             field.value = field.value.replace(`*${user}*`, '');
-            console.log('2',field)
             if (field.value.length === 0) {
                 newEmbed.fields = newEmbed.fields.filter(field => field.name !== `**${date}** **${heure}h**`);
             }
