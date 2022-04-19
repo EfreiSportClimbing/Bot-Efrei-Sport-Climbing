@@ -1,22 +1,23 @@
-const firebase = require("firebase");
-require("firebase/firestore")
+const firebase = require('firebase');
+require('firebase/firestore');
+const {apiKey, authDomain, projectId, databaseURL, storageBucket, messagingSenderId, appId} = require('./config.json');
 // Required for side-effects
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBPRJCKBi_saRBf4KkCMUMcfn8hRcG0Erw",
-  authDomain: "efrei-sport-climbing-s-bot.firebaseapp.com",
-  projectId: "efrei-sport-climbing-s-bot",
-  databaseURL: "https://efrei-sport-climbing-s-bot.firebaseio.com",
-  storageBucket: "efrei-sport-climbing-s-bot.appspot.com",
-  messagingSenderId: "965127462755",
-  appId: "1:965127462755:web:65ea364c223b760296fd56"
+    apiKey: apiKey,
+    authDomain: authDomain,
+    projectId: projectId,
+    databaseURL: databaseURL,
+    storageBucket: storageBucket,
+    messagingSenderId: messagingSenderId,
+    appId: appId
 };
 
 // Initialize Firebase
 if (!firebase.apps.length) {
     const firebaseApp = firebase.initializeApp(firebaseConfig);
 }
-var firestore = firebase.firestore();
+let firestore = firebase.firestore();
 
-module.exports = {firestore}
+module.exports = {firestore};
