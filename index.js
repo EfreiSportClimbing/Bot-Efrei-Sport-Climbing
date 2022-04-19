@@ -78,19 +78,6 @@ client.once('ready', () => {
     deleteSaturday.start();
     deleteSunday.start();
 
-    // const guild = client.guilds.cache.get(guildId)
-    // let scheduledMessage = new cron.CronJob('0 19 0 * * 6',async () => {
-    //     const channel = guild.channels.cache.get('856168569522618369')
-    //     const embedMessage = new MessageEmbed()
-    //     	.setTitle('Pensez bien à vous inscrire 😉')
-    //         .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png')
-    //         .setDescription(':regional_indicator_a: Lundi 14h\n\n:regional_indicator_b: Lundi 18h\n\n:regional_indicator_c: Mardi 14h\n\n:regional_indicator_d: Mardi 18h\n\n:regional_indicator_e: Mercredi 14h\n\n:regional_indicator_f: Mercredi 18h\n\n:regional_indicator_g: Jeudi 14h\n\n:regional_indicator_h: Jeudi 18h\n\n:regional_indicator_i: Vendredi 14h\n\n:regional_indicator_j: Vendredi 18h\n\n:regional_indicator_k: Samedi 14h\n\n:regional_indicator_l: Samedi 18h\n\n:regional_indicator_m: Dimanche 14h\n\n:regional_indicator_n: Dimanche 18h')
-    //         .setColor('GOLD')
-    //         await channel.send('**Heyyy, Sondage hebdo** <@&752444499795640360>:')
-    //         message = await channel.send({embeds : [embedMessage]})
-    //         reacts.map((react)=> message.react(react))
-    // })
-    // scheduledMessage.start()
 });
 
 // client.on('messageReactionAdd', async (reaction, user) => {
@@ -173,6 +160,39 @@ client.on('interactionCreate', async interaction => {
         }).catch(
             () => interaction.reply({content: 'Vous n\'êtes inscrit à aucune séance', ephemeral: true})
         );
+    } else if (commandName === 'desinscrire') {
+        const salle = interaction.options.getString('salle');
+        const date = interaction.options.getString('date');
+        const heure = interaction.options.getString('heure');
+        const messageChanel = channels.find((channel) => channel.name === salle);
+        const channelInstance = client.channels.cache.get(messageChanel.channelId);
+        const message = await channelInstance.messages.fetch(messageChanel.channelEmbedId);
+        const embed = message.embeds[0];
+        const user = interaction.user.username;
+
+        const newEmbed = new MessageEmbed(embed);
+        const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}h**`);
+        if (field) {
+            console.log('1',field)
+            if (!field.value.includes(user)) {
+                return interaction.reply({content: 'Vous n\'êtes pas inscrit à cette séance', ephemeral: true});
+            }
+            field.value = field.value.replace(`, *${user}*`, '');
+            field.value = field.value.replace(`*${user}*`, '');
+            console.log('2',field)
+            if (field.value.length === 0) {
+                newEmbed.fields = newEmbed.fields.filter(field => field.name !== `**${date}** **${heure}h**`);
+            }
+            else {
+                newEmbed.fields = [newEmbed.fields.filter(field => field.name !== `**${date}** **${heure}h**`),field];
+            }
+        } else {
+            return interaction.reply({content: 'Vous n\'êtes pas inscrit à cette séance', ephemeral: true});
+        }
+        //replace the fields in newEmbed with the new fields
+        removeOne(interaction.user);
+        message.edit({embeds: [newEmbed]});
+        await interaction.reply({content : `Suppression d'une séance à **${salle}** le **${date}** à **${heure}h**`, ephemeral: true});
     }
 });
 
