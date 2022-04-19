@@ -34,9 +34,9 @@ async function removeOne(user) {
 }
 
 async function getOne(user) {
-    await firestore.collection('users').doc(user.id).get()
+    return await firestore.collection('users').doc(user.id).get()
         .then(async (docRef) => {
-            return docRef.data().presence;
+            return docRef.data().presence
         })
         .catch(async () => {
             await firestore.collection('users').doc(user.id).set(
@@ -44,8 +44,7 @@ async function getOne(user) {
                     presence: 0,
                     user: user.username
                 }
-            ).then(() => console.log('user created'))
-                .catch(() => console.log('failed to remove user'));
+            ).then(() => 0)
         });
 }
 

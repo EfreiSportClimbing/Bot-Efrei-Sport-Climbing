@@ -154,13 +154,17 @@ client.on('interactionCreate', async interaction => {
         addOne(interaction.user);
         message.edit({embeds: [newEmbed]});
         await interaction.reply(`Ajout d'une séance à **${salle}** le **${date}** à **${heure}h**`);
-    } else if (commandName === 'activité') {
-        getOne(interaction.user).then((activite) => {
+    } 
+    else if (commandName === 'activité') {
+        const activite = await getOne(interaction.user)
+        if ( activite ){
             interaction.reply({content: `Vous vous êtes inscrits à ${activite} séances`, ephemeral: true});
-        }).catch(
-            () => interaction.reply({content: 'Vous n\'êtes inscrit à aucune séance', ephemeral: true})
-        );
-    } else if (commandName === 'desinscrire') {
+            return
+        }
+        interaction.reply({content: 'Vous n\'êtes inscrit à aucune séance', ephemeral: true})
+        return
+    } 
+    else if (commandName === 'desinscrire') {
         const salle = interaction.options.getString('salle');
         const date = interaction.options.getString('date');
         const heure = interaction.options.getString('heure');
