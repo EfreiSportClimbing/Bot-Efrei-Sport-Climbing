@@ -1,1 +1,1 @@
-worker: npm start
+worker: node deploy-commands.js | npm start
