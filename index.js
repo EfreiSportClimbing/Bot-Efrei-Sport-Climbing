@@ -1,6 +1,6 @@
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const cron =  require('cron');
-const { addOne,removeOne } = require( './firestore');
+const { addOne,removeOne, getOne } = require( './firestore');
 const { token, guildId, clientId } =  require('./config.json');
 // Create a new client instance
 const client = new Client({ 
@@ -147,7 +147,7 @@ client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 	const { commandName } = interaction;
 
-	if (commandName === 'sceance') {
+	if (commandName === 'seance') {
         const salle = interaction.options.getString('salle');
         const date = interaction.options.getString("date");
         const heure = interaction.options.getString("heure");
@@ -171,6 +171,12 @@ client.on('interactionCreate', async interaction => {
         message.edit({embeds : [newEmbed]})
 		await interaction.reply(`Ajout d'une séance à ${salle} le ${date} à ${heure}heure`);
 	}
+    else if (commandName === 'activité') {
+        const user = interaction.user.userId
+        getOne(user).then((activite) => {
+            interaction.reply(`Vous vous etes inscris à ${activite} sceances`)
+        })
+    }
 });
 
 client.login(token);

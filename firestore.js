@@ -33,4 +33,20 @@ async function removeOne (user) {
 });
 }
 
-module.exports = {addOne,removeOne}
+async function getOne (user) {
+    await firestore.collection("users").doc(user.id).get()
+    .then(async (docRef) => {
+        return docRef.data().presence
+    })
+    .catch(async () => {
+        await firestore.collection("users").doc(user.id).set(
+            {
+                presence:0,
+                user: user.username
+            }
+        ).then(() => console.log("user created"))
+        .catch(() => console.log("failed to remove user"))
+});
+}
+
+module.exports = {addOne,removeOne,getOne}

@@ -4,7 +4,7 @@ const { Routes } = require('discord-api-types/v9');
 const { clientId, guildId, token } = require('./config.json');
 
 const commands = [
-	new SlashCommandBuilder().setName('sceance')
+	new SlashCommandBuilder().setName('seance')
 		.setDescription('Créer une nouvelle scéance')
 		.addStringOption(option => 
 			option.setName('salle')
@@ -45,7 +45,9 @@ const commands = [
 				.addChoice('19h', '19')
 				.addChoice('20h', '20')
 				.addChoice('21h', '21')
-			)
+			),
+	new SlashCommandBuilder().setName('activité')
+		.setDescription('Savoir son nombre de séances')
 
 ]
 	.map(command => command.toJSON());
