@@ -169,11 +169,11 @@ client.on('interactionCreate', async interaction => {
         }
         addOne(interaction.user)
         message.edit({embeds : [newEmbed]})
-		await interaction.reply(`Ajout d'une séance à ${salle} le ${date} à ${heure}heure`);
+		await interaction.reply(`Ajout d'une séance à **${salle}** le **${date}** à **${heure}h**`);
 	}
     else if (commandName === 'activité') {
         getOne(interaction.user).then((activite) => {
-            interaction.reply(`Vous vous etes inscris à ${activite} sceances`)
+            interaction.reply(`Vous vous etes inscris à ${activite} séances`)
         }).catch(
             () => interaction.reply('Vous n\'êtes pas inscrit à aucune séance')
         )
