@@ -172,8 +172,7 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply(`Ajout d'une séance à ${salle} le ${date} à ${heure}heure`);
 	}
     else if (commandName === 'activité') {
-        const user = interaction.user.userId
-        getOne(user).then((activite) => {
+        getOne(interaction.user).then((activite) => {
             interaction.reply(`Vous vous etes inscris à ${activite} sceances`)
         }).catch(
             () => interaction.reply('Vous n\'êtes pas inscrit à aucune séance')
