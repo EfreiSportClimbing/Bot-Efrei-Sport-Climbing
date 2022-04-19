@@ -175,7 +175,9 @@ client.on('interactionCreate', async interaction => {
         const user = interaction.user.userId
         getOne(user).then((activite) => {
             interaction.reply(`Vous vous etes inscris à ${activite} sceances`)
-        })
+        }).catch(
+            () => interaction.reply('Vous n\'êtes pas inscrit à aucune séance')
+        )
     }
 });
 
