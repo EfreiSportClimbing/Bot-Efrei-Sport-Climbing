@@ -36,9 +36,9 @@ const deleteSceance = (day) => {
     channels.forEach(async (channel) => {
         const guild = client.guilds.cache.get(guildId);
         const chan = guild.channels.cache.get(channel.channelId);
-        const message = await channelInstance.messages.fetch(channel.channelEmbedId);
+        const message = await chan.messages.fetch(channel.channelEmbedId);
         const embed = message.embeds[0];
-        const fields = embed.fields;
+        let fields = embed.fields;
         fields = fields.filter(field => !field.name.includes(day));
         embed.fields = fields;
         await message.edit({embeds: [embed]});
@@ -50,25 +50,25 @@ client.once('ready', () => {
     console.log('Ready!');
     // sendMessages()
     let deleteMonday = new cron.CronJob('0 0 0 * * 2', () => {
-        deleteSceance('Lundi');
+        deleteSceance('lundi');
     }, null, true, 'Europe/Paris');
     let deleteTuesday = new cron.CronJob('0 0 0 * * 3', () => {
-        deleteSceance('Mardi');
+        deleteSceance('mardi');
     }, null, true, 'Europe/Paris');
     let deleteWednesday = new cron.CronJob('0 0 0 * * 4', () => {
-        deleteSceance('Mercredi');
+        deleteSceance('mercredi');
     }, null, true, 'Europe/Paris');
     let deleteThursday = new cron.CronJob('0 0 0 * * 5', () => {
-        deleteSceance('Jeudi');
+        deleteSceance('jeudi');
     }, null, true, 'Europe/Paris');
     let deleteFriday = new cron.CronJob('0 0 0 * * 6', () => {
-        deleteSceance('Vendredi');
+        deleteSceance('vendredi');
     }, null, true, 'Europe/Paris');
     let deleteSaturday = new cron.CronJob('0 0 0 * * 0', () => {
-        deleteSceance('Samedi');
+        deleteSceance('samedi');
     }, null, true, 'Europe/Paris');
     let deleteSunday = new cron.CronJob('0 0 0 * * 1', () => {
-        deleteSceance('Dimanche');
+        deleteSceance('dimanche');
     }, null, true, 'Europe/Paris');
     deleteMonday.start();
     deleteTuesday.start();
