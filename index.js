@@ -15,7 +15,8 @@ const channels = [
     {name: 'antreblock', channelId: '955472985735721010', channelEmbedId: '965621047057604648'},
     {name: 'arkose', channelId: '955473048444756048', channelEmbedId: '965621047133093898'},
     {name: 'climb-up', channelId: '955473017746628628', channelEmbedId: '965012209690345542'},
-    {name: 'vertical-art', channelId: '955473088005431396', channelEmbedId: '965012209690374214'}
+    {name: 'vertical-art', channelId: '955473088005431396', channelEmbedId: '965012209690374214'},
+    {name: 'climb-up-bordeaux', channelId: '1022523538986508360', channelEmbedId: '1022524545887903784'},
 ];
 
 
@@ -29,6 +30,20 @@ const sendMessages = () => {
         const guild = client.guilds.cache.get(guildId);
         const chan = guild.channels.cache.get(channel.channelId);
         await chan.send({embeds: [embed]});
+    });
+};
+
+const updateMessages = () => {
+    channels.forEach(async (channel) => {
+        const channelInstance = client.channels.cache.get(channel.channelId);
+        const message = await channelInstance.messages.fetch(channel.channelEmbedId);
+        const embed = message.embeds[0];
+        const newEmbed = new MessageEmbed(embed);
+        newEmbed.setTitle(`${channel.name}`)
+            .setColor('GOLD')
+            .setDescription(`Horaires prévus à ${channel.name}`)
+            .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png');
+        message.edit({embeds: [newEmbed]}); 
     });
 };
 
@@ -48,7 +63,8 @@ const deleteSceance = (day) => {
 
 client.once('ready', () => {
     console.log('Ready!');
-    // sendMessages()
+    //sendMessages()
+    updateMessages()
     let deleteMonday = new cron.CronJob('0 0 0 * * 2', () => {
         deleteSceance('lundi');
     }, null, true, 'Europe/Paris');
