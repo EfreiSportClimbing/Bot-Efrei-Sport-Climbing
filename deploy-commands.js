@@ -10,41 +10,48 @@ const commands = [
             option.setName('salle')
                 .setRequired(true)
                 .setDescription('Salle de la scéance')
-                .addChoice('Antreblock', 'antreblock')
-                .addChoice('Arkose', 'arkose')
-                .addChoice('Climb-up', 'climb-up')
-                .addChoice('Vertical-art', 'vertical-art')
+                .addChoices(
+                    {name:'Antreblock', value:'antreblock'},
+                    {name:'Arkose', value:'arkose'},
+                    {name:'Climb-up', value:'climb-up'},
+                    {name:'Vertical-art', value:'vertical-art'},
+                    {name:'Climb-up (Bordeaux)', value:'climb-up-bordeaux'}
+                    )
         )
         .addStringOption(option =>
             option.setName('date')
                 .setRequired(true)
                 .setDescription('Jour de la semaine')
-                .addChoice('Lundi', 'lundi')
-                .addChoice('Mardi', 'mardi')
-                .addChoice('Mercredi', 'mercredi')
-                .addChoice('Jeudi', 'jeudi')
-                .addChoice('Vendredi', 'vendredi')
-                .addChoice('Samedi', 'samedi')
-                .addChoice('Dimanche', 'dimanche')
+                .addChoices(
+                    { name:'Lundi', value:'lundi'},
+                    { name:'Mardi', value:'mardi'},
+                    { name:'Mercredi', value:'mercredi'},
+                    { name:'Jeudi', value:'jeudi'},
+                    { name:'Vendredi', value:'vendredi'},
+                    { name:'Samedi', value:'samedi'},
+                    { name:'Dimanche', value:'dimanche'}
+                    )
         )
         .addStringOption(option =>
             option.setName('heure')
                 .setRequired(true)
                 .setDescription('Heure de début')
-                .addChoice('8h', '8')
-                .addChoice('9h', '9')
-                .addChoice('10h', '10')
-                .addChoice('11h', '11')
-                .addChoice('12h', '12')
-                .addChoice('13h', '13')
-                .addChoice('14h', '14')
-                .addChoice('15h', '15')
-                .addChoice('16h', '16')
-                .addChoice('17h', '17')
-                .addChoice('18h', '18')
-                .addChoice('19h', '19')
-                .addChoice('20h', '20')
-                .addChoice('21h', '21')
+                .addChoices(
+                    { name:'8h', value:'8'},
+                    { name:'9h', value:'9'},
+                    { name:'10h', value:'10'},
+                    { name:'11h', value:'11'},
+                    { name:'12h', value:'12'},
+                    { name:'13h', value:'13'},
+                    { name:'14h', value:'14'},
+                    { name:'15h', value:'15'},
+                    { name:'16h', value:'16'},
+                    { name:'17h', value:'17'},
+                    { name:'18h', value:'18'},
+                    { name:'19h', value:'19'},
+                    { name:'20h', value:'20'},
+                    { name:'21h', value:'21'}
+                    )
         ),
     new SlashCommandBuilder().setName('activité')
         .setDescription('Savoir son nombre de séances'),
@@ -54,46 +61,53 @@ const commands = [
             option.setName('salle')
                 .setRequired(true)
                 .setDescription('Salle de la scéance')
-                .addChoice('Antreblock', 'antreblock')
-                .addChoice('Arkose', 'arkose')
-                .addChoice('Climb-up', 'climb-up')
-                .addChoice('Vertical-art', 'vertical-art')
+                .addChoices(
+                    {name:'Antreblock', value:'antreblock'},
+                    {name:'Arkose', value:'arkose'},
+                    {name:'Climb-up', value:'climb-up'},
+                    {name:'Vertical-art', value:'vertical-art'},
+                    {name:'Climb-up (Bordeaux)', value:'climb-up-bordeaux'}
+                    )
         )
         .addStringOption(option =>
             option.setName('date')
                 .setRequired(true)
                 .setDescription('Jour de la semaine')
-                .addChoice('Lundi', 'lundi')
-                .addChoice('Mardi', 'mardi')
-                .addChoice('Mercredi', 'mercredi')
-                .addChoice('Jeudi', 'jeudi')
-                .addChoice('Vendredi', 'vendredi')
-                .addChoice('Samedi', 'samedi')
-                .addChoice('Dimanche', 'dimanche')
+                .addChoices(
+                    { name:'Lundi', value:'lundi'},
+                    { name:'Mardi', value:'mardi'},
+                    { name:'Mercredi', value:'mercredi'},
+                    { name:'Jeudi', value:'jeudi'},
+                    { name:'Vendredi', value:'vendredi'},
+                    { name:'Samedi', value:'samedi'},
+                    { name:'Dimanche', value:'dimanche'}
+                    )
         )
         .addStringOption(option =>
             option.setName('heure')
                 .setRequired(true)
                 .setDescription('Heure de début')
-                .addChoice('8h', '8')
-                .addChoice('9h', '9')
-                .addChoice('10h', '10')
-                .addChoice('11h', '11')
-                .addChoice('12h', '12')
-                .addChoice('13h', '13')
-                .addChoice('14h', '14')
-                .addChoice('15h', '15')
-                .addChoice('16h', '16')
-                .addChoice('17h', '17')
-                .addChoice('18h', '18')
-                .addChoice('19h', '19')
-                .addChoice('20h', '20')
-                .addChoice('21h', '21')
+                .addChoices(
+                    { name:'8h', value:'8'},
+                    { name:'9h', value:'9'},
+                    { name:'10h', value:'10'},
+                    { name:'11h', value:'11'},
+                    { name:'12h', value:'12'},
+                    { name:'13h', value:'13'},
+                    { name:'14h', value:'14'},
+                    { name:'15h', value:'15'},
+                    { name:'16h', value:'16'},
+                    { name:'17h', value:'17'},
+                    { name:'18h', value:'18'},
+                    { name:'19h', value:'19'},
+                    { name:'20h', value:'20'},
+                    { name:'21h', value:'21'}
+                    )
         ),
 ]
     .map(command => command.toJSON());
 
-const rest = new REST({version: '9'}).setToken(token);
+const rest = new REST({version: '10'}).setToken(token);
 
 rest.put(Routes.applicationGuildCommands(clientId, guildId), {body: commands})
     .then(() => console.log('Successfully registered application commands.'))

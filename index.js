@@ -1,28 +1,28 @@
-const {Client, Intents, MessageEmbed} = require('discord.js');
+const {Client, GatewayIntentBits, EmbedBuilder, Partials} = require('discord.js');
 const cron = require('cron');
 const {addOne, removeOne, getOne} = require('./firestore');
 const {token, guildId, clientId} = require('./config.json');
 // Create a new client instance
 const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
-    partials: ['MESSAGE', 'CHANNEL', 'REACTION']
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
 // When the client is ready, run this code (only once)
 const reacts = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳'];
 let message = null;
 const channels = [
-    {name: 'antreblock', channelId: '955472985735721010', channelEmbedId: '965621047057604648'},
-    {name: 'arkose', channelId: '955473048444756048', channelEmbedId: '965621047133093898'},
-    {name: 'climb-up', channelId: '955473017746628628', channelEmbedId: '965012209690345542'},
-    {name: 'vertical-art', channelId: '955473088005431396', channelEmbedId: '965012209690374214'},
-    {name: 'climb-up-bordeaux', channelId: '1022523538986508360', channelEmbedId: '1022524545887903784'},
+    {name: 'antreblock', channelId: '955472985735721010', channelEmbedId: '1031338222971797514'},
+    {name: 'arkose', channelId: '955473048444756048', channelEmbedId: '1031338222992769024'},
+    {name: 'climb-up', channelId: '955473017746628628', channelEmbedId: '1031338222963408936'},
+    {name: 'vertical-art', channelId: '955473088005431396', channelEmbedId: '1031338222988558386'},
+    {name: 'climb-up-bordeaux', channelId: '1022523538986508360', channelEmbedId: '1031338222975975424'},
 ];
 
 
 const sendMessages = () => {
     channels.forEach(async (channel) => {
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setTitle(`${channel.name}`)
             .setColor('GOLD')
             .setDescription(`Horaires prévus à ${channel.name}`)
@@ -38,9 +38,9 @@ const updateMessages = () => {
         const channelInstance = client.channels.cache.get(channel.channelId);
         const message = await channelInstance.messages.fetch(channel.channelEmbedId);
         const embed = message.embeds[0];
-        const newEmbed = new MessageEmbed(embed);
+        const newEmbed = new EmbedBuilder(embed);
         newEmbed.setTitle(`${channel.name}`)
-            .setColor('GOLD')
+            .setColor('Gold')
             .setDescription(`Horaires prévus à ${channel.name}`)
             .setThumbnail('https://cdn.discordapp.com/attachments/934805065745715243/934823576807280700/Logo_ESC.png');
         message.edit({embeds: [newEmbed]}); 
@@ -157,15 +157,18 @@ client.on('interactionCreate', async interaction => {
         const embed = message.embeds[0];
         const user = interaction.user.username;
 
-        const newEmbed = new MessageEmbed(embed);
-        const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}h**`);
+        const newEmbed = new EmbedBuilder(embed.data);
+        const field = newEmbed.data.fields?.find((field) => field.name === `**${date}** **${heure}h**`);
         if (field) {
             if (field.value.includes(user)) {
                 return interaction.reply({content: 'Vous êtes déjà inscrit à cette séance', ephemeral: true});
             }
             field.value += `, *${user}*`;
-        } else {
-            newEmbed.addField(`**${date}** **${heure}h**`, `*${user}*`);
+        }
+        else {
+            newEmbed.addFields(
+                {name: `**${date}** **${heure}h**`, value: `*${user}*`, inline: true}
+            );
         }
         addOne(interaction.user);
         message.edit({embeds: [newEmbed]});
@@ -190,8 +193,8 @@ client.on('interactionCreate', async interaction => {
         const embed = message.embeds[0];
         const user = interaction.user.username;
 
-        const newEmbed = new MessageEmbed(embed);
-        const field = newEmbed.fields.find((field) => field.name === `**${date}** **${heure}h**`);
+        const newEmbed = new EmbedBuilder(embed.data);
+        const field = newEmbed.data.fields?.find((field) => field.name === `**${date}** **${heure}h**`);
         if (field) {
             if (!field.value.includes(user)) {
                 return interaction.reply({content: 'Vous n\'êtes pas inscrit à cette séance', ephemeral: true});
@@ -199,10 +202,10 @@ client.on('interactionCreate', async interaction => {
             field.value = field.value.replace(`, *${user}*`, '');
             field.value = field.value.replace(`*${user}*`, '');
             if (field.value.length === 0) {
-                newEmbed.fields = newEmbed.fields.filter(field => field.name !== `**${date}** **${heure}h**`);
+                newEmbed.data.fields = newEmbed.data.fields.filter(field => field.name !== `**${date}** **${heure}h**`);
             }
             else {
-                newEmbed.fields = [newEmbed.fields.filter(field => field.name !== `**${date}** **${heure}h**`),field];
+                newEmbed.data.fields = [newEmbed.data.fields.filter(field => field.name !== `**${date}** **${heure}h**`),field];
             }
         } else {
             return interaction.reply({content: 'Vous n\'êtes pas inscrit à cette séance', ephemeral: true});
