@@ -1,6 +1,6 @@
 const {Client, GatewayIntentBits, EmbedBuilder, Partials} = require('discord.js');
 const cron = require('cron');
-const {addOne, removeOne, getOne} = require('./firestore');
+const {addOne, removeOne, getOne, getAll} = require('./firestore');
 const {token, guildId, clientId} = require('./config.json');
 // Create a new client instance
 const client = new Client({
@@ -63,6 +63,10 @@ const deleteSceance = (day) => {
 
 client.once('ready', () => {
     console.log('Ready!');
+
+    getAll().then((data) => {
+        console.log(data);
+    });
     //sendMessages()
     updateMessages()
     let deleteMonday = new cron.CronJob('0 0 0 * * 2', () => {
