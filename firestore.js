@@ -18,6 +18,7 @@ async function registerUser(user) {
             promo: user.promo,
             firstname: user.firstname,
             lastname: user.lastname,
+            nb_seance: 0,
         })
         .then(() => console.log("user added"));
 }
