@@ -4,7 +4,7 @@ const {Routes} = require('discord-api-types/v9');
 const {clientId, guildId, token} = require('./config.json');
 
 const commands = [
-    new SlashCommandBuilder().setName('seance')
+    new SlashCommandBuilder().setName('séance')
         .setDescription('Créer une nouvelle scéance')
         .addStringOption(option =>
             option.setName('salle')
@@ -55,7 +55,7 @@ const commands = [
         ),
     new SlashCommandBuilder().setName('activité')
         .setDescription('Savoir son nombre de séances'),
-	new SlashCommandBuilder().setName('desinscrire')
+	new SlashCommandBuilder().setName('désinscrire')
 		.setDescription('Se désinscrire de la scéance')
         .addStringOption(option =>
             option.setName('salle')
@@ -104,8 +104,31 @@ const commands = [
                     { name:'21h', value:'21'}
                     )
         ),
-]
-    .map(command => command.toJSON());
+    new SlashCommandBuilder().setName('inscription')
+        .setDescription('S\'inscrire dans la base de donnée')
+        .addStringOption(option =>
+            option.setName('nom')
+                .setRequired(true)
+                .setDescription('Nom de famille')
+        )
+        .addStringOption(option =>
+            option.setName('prénom')
+                .setRequired(true)
+                .setDescription('Prénom')
+        )
+        .addStringOption(option =>
+            option.setName('promo')
+                .setRequired(true)
+                .setDescription('Promotion')
+                .addChoices(
+                    { name:'2023', value:'2023'},
+                    { name:'2024', value:'2024'},
+                    { name:'2025', value:'2025'},
+                    { name:'2026', value:'2026'},
+                    { name:'2027', value:'2027'},
+                )
+        )
+    ].map(command => command.toJSON());
 
 const rest = new REST({version: '10'}).setToken(token);
 
