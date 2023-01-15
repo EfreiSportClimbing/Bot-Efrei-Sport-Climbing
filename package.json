@@ -19,6 +19,8 @@
     "discord.js": "^14.6.0",
     "firebase": "^8.10.0",
     "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "ical-generator": "^3.6.1",
     "lowdb": "^5.0.5",
     "nedb": "^1.8.0",
     "nedb-promises": "^6.2.1"

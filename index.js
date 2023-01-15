@@ -1,13 +1,20 @@
-import { Low } from "lowdb";
 import Datastore from "nedb-promises";
-import { JSONFile } from "lowdb/node";
 import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder } from "discord.js";
 import cron from "cron";
 import { addOne, removeOne, getOne, registerUser, getUser } from "./firestore.js";
 import * as data from "./config.json" assert { type: "json" };
+import * as http from "http";
+import ical from "ical-generator";
+
+const host = "localhost";
+const port = 80;
+
+const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
+calendar.source("http://localhost/data/calendar.ical");
+calendar.timezone("Europe/Paris");
 
 // get config file
-const { token } = data.default;
+const { token, guildId } = data.default;
 
 // config database file
 const db = new Datastore({ filename: "./data/cache.db", autoload: true });
@@ -20,12 +27,18 @@ const client = new Client({
 
 // When the client is ready, run this code (only once)
 const channels = [
-    { name: "antreblock", channelId: "955472985735721010" },
-    { name: "arkose", channelId: "955473048444756048" },
-    { name: "climb-up", channelId: "955473017746628628" },
-    { name: "vertical-art", channelId: "955473088005431396" },
-    { name: "climb-up-bordeaux", channelId: "1022523538986508360" },
-    { name: "annonces", channelId: "755109496182931476" },
+    { name: "antreblock", channelId: "934805065745715243" }, // todo: remove hardcoded channel id
+    { name: "arkose", channelId: "934805065745715243" },
+    { name: "climb-up", channelId: "934805065745715243" },
+    { name: "vertical-art", channelId: "934805065745715243" },
+    { name: "climb-up-bordeaux", channelId: "934805065745715243" },
+    { name: "annonces", channelId: "934805065745715243" },
+    // { name: "antreblock", channelId: "955472985735721010" },
+    // { name: "arkose", channelId: "955473048444756048" },
+    // { name: "climb-up", channelId: "955473017746628628" },
+    // { name: "vertical-art", channelId: "955473088005431396" },
+    // { name: "climb-up-bordeaux", channelId: "1022523538986508360" },
+    // { name: "annonces", channelId: "755109496182931476" },
 ];
 
 const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
@@ -43,8 +56,76 @@ const deleteSceances = () => {
     });
 };
 
-client.once("ready", () => {
+const generateDate = (day, hour) => {
+    //generate date from command
+    const date = new Date();
+
+    var daytoset = days.indexOf(day);
+    var currentDay = date.getDay();
+    var distance = (daytoset + 7 - currentDay) % 7;
+    date.setDate(date.getDate() + distance);
+
+    hour = hour.split("h")[0];
+    date.setHours(hour);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    return date;
+};
+
+const createEvent = (salle, date, user, channelId, messageId) => {
+    const event = calendar.createEvent({
+        start: date,
+        end: new Date(date.getTime() + 2 * 60 * 60 * 1000),
+        summary: `Séance à ${salle}`,
+        description: `Séance à ${salle} organisé par ${user.firstname} ${user.lastname}`,
+        location: salle,
+        url: "https://discord.com/channels/" + guildId + "/" + channelId + "/" + messageId,
+    });
+    event.createAttendee({ name: user.firstname + " " + user.lastname, email: "noreply@esc.fr" });
+};
+
+const addUserToEvent = (salle, date, user) => {
+    const event = calendar.events().find((event) => event.location().title === salle && event.start().getTime() === date.getTime());
+    if (event) {
+        event.createAttendee({ name: user.firstname + " " + user.lastname, email: "noreply@esc.fr" });
+    }
+};
+
+const removeUserFromEvent = (salle, date, user) => {
+    const event = calendar.events().find((event) => {
+        return event.location().title === salle && event.start().getTime() === date.getTime();
+    });
+    if (event) {
+        const attendees = event.attendees().filter((attendee) => attendee.name() !== user.firstname + " " + user.lastname);
+        if (attendees.length === 0) {
+            const events = calendar.events().filter((event) => event.location().title !== salle && event.start().getTime() !== date.getTime());
+            calendar.data.events = events;
+        } else {
+            event.data.attendees = attendees;
+        }
+    }
+};
+
+const loadCalendar = async () => {
+    const séances = await db.find({});
+    séances.forEach(async (séance) => {
+        const user = await getUser(await client.guilds.cache.get(guildId).members.fetch(séance.participants[0]));
+        const channel = channels.find((channel) => channel.name === séance.salle).channelId;
+        createEvent(séance.salle, séance.date, user, channel, séance._id);
+        séance.participants.forEach(async (participantId, index) => {
+            if (index !== 0) {
+                const user = await getUser(await client.guilds.cache.get(guildId).members.fetch(participantId));
+                addUserToEvent(séance.salle, séance.date, user);
+            }
+        });
+    });
+};
+
+client.once("ready", async () => {
     console.log("Ready!");
+    await loadCalendar();
     let deleteDay = new cron.CronJob(
         "0 0 0 * * *",
         () => {
@@ -59,12 +140,12 @@ client.once("ready", () => {
 
 client.on("interactionCreate", async (interaction) => {
     // check the role of the user
-    if (!interaction.member.roles.cache.has("752444499795640360") && !interaction.member.roles.cache.has("1032031670964072650")) {
-        return interaction.reply({
-            content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
-            ephemeral: true,
-        });
-    }
+    // if (!interaction.member.roles.cache.has("752444499795640360") && !interaction.member.roles.cache.has("1032031670964072650")) {
+    //     return interaction.reply({
+    //         content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
+    //         ephemeral: true,
+    //     });
+    // }
     //get user info
     try {
         var user = await getUser(interaction.user);
@@ -84,22 +165,12 @@ client.on("interactionCreate", async (interaction) => {
             const heure = interaction.options.getString("heure");
 
             //generate date from command
-            const date = new Date();
-
-            var daytoset = days.indexOf(day);
-            var currentDay = date.getDay();
-            var distance = (daytoset + 7 - currentDay) % 7;
-            date.setDate(date.getDate() + distance);
-
-            var hour = heure.split("h")[0];
-            date.setHours(hour);
-            date.setMinutes(0);
-            date.setSeconds(0);
-            date.setMilliseconds(0);
+            const date = generateDate(day, heure);
 
             //check if we already have a session at this time
             const session = await db.findOne({ date: date, salle: salle });
             if (session) {
+                // check if user is already registered
                 if (session.participants.includes(interaction.user.id)) {
                     return interaction.reply({
                         content: `Vous êtes déjà inscrit à cette séance.`,
@@ -120,7 +191,12 @@ client.on("interactionCreate", async (interaction) => {
                     await addOne(interaction.user);
                     db.updateOne({ _id: session._id }, { $push: { participants: interaction.user.id } });
 
+                    //update event
+                    addUserToEvent(salle, date, user);
+
+                    //update message
                     message.edit({ embeds: [newEmbed] });
+                    // send confirmation
                     return interaction.reply({ content: `Vous avez été ajouté à la séance.`, ephemeral: true });
                 }
             } else {
@@ -167,9 +243,16 @@ client.on("interactionCreate", async (interaction) => {
                         components: [new ActionRowBuilder().addComponents([button1, button2])],
                     })
                     .then((embedMessage) => embedMessage.id);
+
+                // update databases
                 const doc = { _id: messageId, participants: [interaction.user.id], date: date, salle: salle };
                 await db.insert(doc);
                 await addOne(interaction.user);
+
+                // create event in calendar
+                createEvent(salle, date, user, messageChanel.channelId, messageId);
+
+                // send confirmation
                 return interaction.reply(`Ajout d'une séance à **${salle}** le **${day}** à **${heure}h**`);
             }
         } else if (commandName === "activité") {
@@ -229,8 +312,13 @@ client.on("interactionCreate", async (interaction) => {
                 await addOne(interaction.user);
                 db.updateOne({ _id: séance._id }, { $push: { participants: interaction.user.id } });
 
+                //update event
+                addUserToEvent(séance.salle, séance.date, user);
+
+                //update message
                 message.edit({ embeds: [newEmbed] });
-                await interaction.reply({ content: `Vous avez été ajouté à la séance.`, ephemeral: true });
+                // send confirmation
+                return interaction.reply({ content: `Vous avez été ajouté à la séance.`, ephemeral: true });
             }
         } else if (buttonId == "leave") {
             const séance = await db.findOne({ _id: message.id });
@@ -250,16 +338,33 @@ client.on("interactionCreate", async (interaction) => {
                 await removeOne(interaction.user);
                 db.updateOne({ _id: séance._id }, { $pull: { participants: interaction.user.id } });
 
+                //update event
+                removeUserFromEvent(séance.salle, séance.date, user);
+
+                //update message and delete if no participants
                 if (séance.participants.length === 1) {
                     db.deleteOne({ _id: séance._id });
                     await message.delete();
                 } else {
                     message.edit({ embeds: [newEmbed] });
                 }
-                await interaction.reply({ content: `Vous avez été retiré de la séance.`, ephemeral: true });
+                // send confirmation
+                return interaction.reply({ content: `Vous avez été retiré de la séance.`, ephemeral: true });
             }
         }
     }
+    return interaction.reply({ content: "Une erreur est survenue lors de la commande.", ephemeral: true });
 });
 
 client.login(token);
+
+const requestListener = function (req, res) {
+    if (req.url === "/calendar.ical") {
+        calendar.serve(res);
+    }
+};
+
+const server = http.createServer(requestListener);
+server.listen(port, host, () => {
+    console.log(`Server is running on http://${host}:${port}`);
+});
