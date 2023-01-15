@@ -140,12 +140,12 @@ client.once("ready", async () => {
 
 client.on("interactionCreate", async (interaction) => {
     // check the role of the user
-    // if (!interaction.member.roles.cache.has("752444499795640360") && !interaction.member.roles.cache.has("1032031670964072650")) {
-    //     return interaction.reply({
-    //         content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
-    //         ephemeral: true,
-    //     });
-    // }
+    if (!interaction.member.roles.cache.has("752444499795640360") && !interaction.member.roles.cache.has("1032031670964072650")) {
+        return interaction.reply({
+            content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
+            ephemeral: true,
+        });
+    }
     //get user info
     try {
         var user = await getUser(interaction.user);
