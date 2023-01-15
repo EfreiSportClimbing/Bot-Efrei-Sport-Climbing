@@ -27,18 +27,12 @@ const client = new Client({
 
 // When the client is ready, run this code (only once)
 const channels = [
-    { name: "antreblock", channelId: "934805065745715243" }, // todo: remove hardcoded channel id
-    { name: "arkose", channelId: "934805065745715243" },
-    { name: "climb-up", channelId: "934805065745715243" },
-    { name: "vertical-art", channelId: "934805065745715243" },
-    { name: "climb-up-bordeaux", channelId: "934805065745715243" },
-    { name: "annonces", channelId: "934805065745715243" },
-    // { name: "antreblock", channelId: "955472985735721010" },
-    // { name: "arkose", channelId: "955473048444756048" },
-    // { name: "climb-up", channelId: "955473017746628628" },
-    // { name: "vertical-art", channelId: "955473088005431396" },
-    // { name: "climb-up-bordeaux", channelId: "1022523538986508360" },
-    // { name: "annonces", channelId: "755109496182931476" },
+    { name: "antreblock", channelId: "955472985735721010" },
+    { name: "arkose", channelId: "955473048444756048" },
+    { name: "climb-up", channelId: "955473017746628628" },
+    { name: "vertical-art", channelId: "955473088005431396" },
+    { name: "climb-up-bordeaux", channelId: "1022523538986508360" },
+    { name: "annonces", channelId: "755109496182931476" },
 ];
 
 const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
