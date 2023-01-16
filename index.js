@@ -4,17 +4,20 @@ import cron from "cron";
 import { addOne, removeOne, getOne, registerUser, getUser } from "./firestore.js";
 import * as data from "./config.json" assert { type: "json" };
 import * as http from "http";
+import * as fs from "fs";
 import ical from "ical-generator";
 
-const host = "localhost";
+const host = "127.0.0.1";
 const port = 80;
 
 const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
 calendar.source("http://localhost/data/calendar.ical");
+calendar.url("http://localhost/data/calendar.ical");
+calendar.ttl(60);
 calendar.timezone("Europe/Paris");
 
 // get config file
-const { token, guildId } = data.default;
+const { token, guildId, globalIp } = data.default;
 
 // config database file
 const db = new Datastore({ filename: "./data/cache.db", autoload: true });
@@ -218,6 +221,7 @@ client.on("interactionCreate", async (interaction) => {
                     inline: false,
                 });
                 embed.setColor("Gold");
+                embed.setThumbnail("http://" + globalIp + "/" + salle);
                 // add button
                 const button1 = new ButtonBuilder();
                 button1.setCustomId("join");
@@ -354,7 +358,19 @@ client.login(token);
 
 const requestListener = function (req, res) {
     if (req.url === "/calendar.ical") {
-        calendar.serve(res);
+        return calendar.serve(res);
+    } else if (req.url === "/antrebloc") {
+        res.contentType = "image/png";
+        return fs.readFile("src/antrebloc.png").pipe(res);
+    } else if (req.url === "/arkose") {
+        res.contentType = "image/png";
+        return fs.readFile("src/arkose.png").pipe(res);
+    } else if (req.url === "/climb-up" || req.url === "/climb-up-bordeaux") {
+        res.contentType = "image/png";
+        return fs.readFile("src/climb-up.png").pipe(res);
+    } else if (req.url === "vertical-art") {
+        res.contentType = "image/png";
+        return fs.readFile("src/vertical-art.png").pipe(res);
     }
 };
 
