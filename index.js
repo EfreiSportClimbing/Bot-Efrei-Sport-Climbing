@@ -7,7 +7,8 @@ import * as http from "http";
 import * as fs from "fs";
 import ical from "ical-generator";
 
-const host = "127.0.0.1";
+// get config file
+const { token, guildId, globalIp, host } = data.default;
 const port = 80;
 
 const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
@@ -15,9 +16,6 @@ calendar.source("http://localhost/data/calendar.ical");
 calendar.url("http://localhost/data/calendar.ical");
 calendar.ttl(60);
 calendar.timezone("Europe/Paris");
-
-// get config file
-const { token, guildId, globalIp } = data.default;
 
 // config database file
 const db = new Datastore({ filename: "./data/cache.db", autoload: true });
