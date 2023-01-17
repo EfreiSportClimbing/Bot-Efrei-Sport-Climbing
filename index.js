@@ -1,5 +1,5 @@
 import Datastore from "nedb-promises";
-import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder } from "discord.js";
+import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder, AttachmentBuilder } from "discord.js";
 import cron from "cron";
 import { addOne, removeOne, getOne, registerUser, getUser } from "./firestore.js";
 import * as data from "./config.json" assert { type: "json" };
@@ -8,8 +8,7 @@ import * as fs from "fs";
 import ical from "ical-generator";
 
 // get config file
-const { token, guildId, globalIp, host } = data.default;
-const port = 80;
+const { token, guildId, globalIp, host, port } = data.default;
 
 const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
 calendar.source("http://localhost/data/calendar.ical");
@@ -219,7 +218,7 @@ client.on("interactionCreate", async (interaction) => {
                     inline: false,
                 });
                 embed.setColor("Gold");
-                embed.setThumbnail("http://" + globalIp + "/" + salle);
+                embed.setThumbnail("attachment://" + salle + ".png");
                 // add button
                 const button1 = new ButtonBuilder();
                 button1.setCustomId("join");
@@ -229,13 +228,16 @@ client.on("interactionCreate", async (interaction) => {
                 button2.setCustomId("leave");
                 button2.setLabel("Se désinscrire");
                 button2.setStyle("Danger");
+                // add image
+                const image = new AttachmentBuilder('./src/' + salle + '.png');
 
                 // send message
-                const messageChanel = channels.find((channel) => channel.name === salle);
-                const channelInstance = client.channels.cache.get(messageChanel.channelId);
+                const channelId = channels.find((channel) => channel.name === salle).channelId;
+                const channelInstance = client.channels.cache.get(channelId);
                 var messageId = await channelInstance
                     .send({
                         embeds: [embed],
+                        files: [image],
                         components: [new ActionRowBuilder().addComponents([button1, button2])],
                     })
                     .then((embedMessage) => embedMessage.id);
@@ -246,7 +248,7 @@ client.on("interactionCreate", async (interaction) => {
                 await addOne(interaction.user);
 
                 // create event in calendar
-                createEvent(salle, date, user, messageChanel.channelId, messageId);
+                createEvent(salle, date, user, channelId, messageId);
 
                 // send confirmation
                 return interaction.reply(`Ajout d'une séance à **${salle}** le **${day}** à **${heure}h**`);
@@ -359,16 +361,16 @@ const requestListener = function (req, res) {
         return calendar.serve(res);
     } else if (req.url === "/antrebloc") {
         res.contentType = "image/png";
-        return fs.readFile("src/antrebloc.png").pipe(res);
+        return fs.createReadStream("src/antrebloc.png").pipe(res);
     } else if (req.url === "/arkose") {
         res.contentType = "image/png";
-        return fs.readFile("src/arkose.png").pipe(res);
+        return fs.createReadStream("src/arkose.png").pipe(res);
     } else if (req.url === "/climb-up" || req.url === "/climb-up-bordeaux") {
         res.contentType = "image/png";
-        return fs.readFile("src/climb-up.png").pipe(res);
+        return fs.createReadStream("src/climb-up.png").pipe(res);
     } else if (req.url === "vertical-art") {
         res.contentType = "image/png";
-        return fs.readFile("src/vertical-art.png").pipe(res);
+        return fs.createReadStream("src/vertical-art.png").pipe(res);
     }
 };
 
