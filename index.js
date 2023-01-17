@@ -359,18 +359,6 @@ client.login(token);
 const requestListener = function (req, res) {
     if (req.url === "/calendar.ical") {
         return calendar.serve(res);
-    } else if (req.url === "/antrebloc") {
-        res.contentType = "image/png";
-        return fs.createReadStream("src/antrebloc.png").pipe(res);
-    } else if (req.url === "/arkose") {
-        res.contentType = "image/png";
-        return fs.createReadStream("src/arkose.png").pipe(res);
-    } else if (req.url === "/climb-up" || req.url === "/climb-up-bordeaux") {
-        res.contentType = "image/png";
-        return fs.createReadStream("src/climb-up.png").pipe(res);
-    } else if (req.url === "vertical-art") {
-        res.contentType = "image/png";
-        return fs.createReadStream("src/vertical-art.png").pipe(res);
     }
 };
 
