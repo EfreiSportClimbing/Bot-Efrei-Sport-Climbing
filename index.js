@@ -210,7 +210,7 @@ client.on("interactionCreate", async (interaction) => {
                     addUserToEvent(salle, date, user);
 
                     //update message
-                    message.edit({ embeds: [newEmbed] });
+                    message.edit({ embeds: [newEmbed], files: [] });
                     // send confirmation
                     return interaction.reply({ content: `Vous avez été ajouté à la séance.`, ephemeral: true });
                 }
@@ -346,7 +346,7 @@ client.on("interactionCreate", async (interaction) => {
                     db.deleteOne({ _id: séance._id });
                     await message.delete();
                 } else {
-                    message.edit({ embeds: [newEmbed] });
+                    message.edit({ embeds: [newEmbed], files: [] });
                 }
                 // send confirmation
                 return interaction.reply({ content: `Vous avez été retiré de la séance.`, ephemeral: true });
