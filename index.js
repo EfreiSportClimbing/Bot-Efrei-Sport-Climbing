@@ -27,7 +27,7 @@ const client = new Client({
 
 // When the client is ready, run this code (only once)
 const channels = [
-    { name: "antreblock", channelId: "955472985735721010" },
+    { name: "antrebloc", channelId: "955472985735721010" },
     { name: "arkose", channelId: "955473048444756048" },
     { name: "climb-up", channelId: "955473017746628628" },
     { name: "vertical-art", channelId: "955473088005431396" },
@@ -37,15 +37,15 @@ const channels = [
 
 const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
-const deleteSceances = () => {
-    const séances = db.find({
-        time: { $lt: new Date() },
+const deleteSceances = async () => {
+    const séances = await db.find({
+        date: { $lt: new Date() },
     });
     séances.forEach(async (séance) => {
-        const channelId = channels.find((channel) => channel.name === séance.channel).channelId;
+        const channelId = channels.find((channel) => channel.name === séance.salle).channelId;
         const channel = client.channels.cache.get(channelId);
-        const message = channel.messages.fetch(séance.messageId);
-        message.delete();
+        const message = await channel.messages.fetch(séance._id);
+        await message.delete();
         await db.remove({ _id: séance._id });
     });
 };
@@ -122,8 +122,8 @@ client.once("ready", async () => {
     await loadCalendar();
     let deleteDay = new cron.CronJob(
         "0 0 0 * * *",
-        () => {
-            deleteSceances();
+        async () => {
+            await deleteSceances();
         },
         null,
         true,
@@ -139,6 +139,27 @@ client.on("interactionCreate", async (interaction) => {
             content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
             ephemeral: true,
         });
+    }
+    // inscription command
+    if (interaction.isCommand() && interaction?.commandName === "inscription") {
+        const myUser = {
+            ...interaction.user,
+            lastname: interaction.options.getString("nom"),
+            firstname: interaction.options.getString("prénom"),
+            promo: interaction.options.getString("promo"),
+        };
+        try {
+            await registerUser(myUser);
+            return interaction.reply({
+                content: `Inscription réussie !`,
+                ephemeral: true,
+            });
+        } catch (error) {
+            return interaction.reply({
+                content: error.message,
+                ephemeral: true,
+            });
+        }
     }
     //get user info
     try {
@@ -266,25 +287,6 @@ client.on("interactionCreate", async (interaction) => {
                 content: "Vous n'êtes inscrit à aucune séance",
                 ephemeral: true,
             });
-        } else if (commandName === "inscription") {
-            const myUser = {
-                ...interaction.user,
-                lastname: interaction.options.getString("nom"),
-                firstname: interaction.options.getString("prénom"),
-                promo: interaction.options.getString("promo"),
-            };
-            try {
-                await registerUser(myUser);
-                return interaction.reply({
-                    content: `Inscription réussie !`,
-                    ephemeral: true,
-                });
-            } catch (error) {
-                return interaction.reply({
-                    content: error.message,
-                    ephemeral: true,
-                });
-            }
         }
     } else if (interaction.isButton()) {
         // if the interaction is a button
@@ -314,7 +316,7 @@ client.on("interactionCreate", async (interaction) => {
                 addUserToEvent(séance.salle, séance.date, user);
 
                 //update message
-                message.edit({ embeds: [newEmbed] });
+                message.edit({ embeds: [newEmbed], files: [] });
                 // send confirmation
                 return interaction.reply({ content: `Vous avez été ajouté à la séance.`, ephemeral: true });
             }

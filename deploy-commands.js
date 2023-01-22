@@ -14,7 +14,7 @@ const commands = [
                 .setRequired(true)
                 .setDescription("Salle de la scéance")
                 .addChoices(
-                    { name: "Antreblock", value: "antreblock" },
+                    { name: "Antrebloc", value: "antrebloc" },
                     { name: "Arkose", value: "arkose" },
                     { name: "Climb-up", value: "climb-up" },
                     { name: "Vertical-art", value: "vertical-art" },
