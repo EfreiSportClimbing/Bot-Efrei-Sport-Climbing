@@ -6,6 +6,7 @@ import * as data from "./config.json" assert { type: "json" };
 import * as http from "http";
 import * as fs from "fs";
 import ical from "ical-generator";
+import helloAssoTask from "./helloasso.js";
 
 // get config file
 const { token, guildId, globalIp, host, port } = data.default;
@@ -103,22 +104,27 @@ const removeUserFromEvent = (salle, date, user) => {
 };
 
 const loadCalendar = async () => {
-    const séances = await db.find({});
-    séances.forEach(async (séance) => {
-        const user = await getUser(await client.guilds.cache.get(guildId).members.fetch(séance.participants[0]));
-        const channel = channels.find((channel) => channel.name === séance.salle).channelId;
-        createEvent(séance.salle, séance.date, user, channel, séance._id);
-        séance.participants.forEach(async (participantId, index) => {
+    const seances = await db.find({});
+    seances.forEach(async (seance) => {
+        const user = await getUser(await client.guilds.cache.get(guildId).members.fetch(seance.participants[0]));
+        const channel = channels.find((channel) => channel.name === seance.salle).channelId;
+        createEvent(seance.salle, seance.date, user, channel, seance._id);
+        seance.participants.forEach(async (participantId, index) => {
             if (index !== 0) {
                 const user = await getUser(await client.guilds.cache.get(guildId).members.fetch(participantId));
-                addUserToEvent(séance.salle, séance.date, user);
+                addUserToEvent(seance.salle, seance.date, user);
             }
         });
     });
 };
 
+const sendTicket = async (user) => {
+    
+}
+
 client.once("ready", async () => {
     console.log("Ready!");
+    helloAssoTask.start();
     await loadCalendar();
     let deleteDay = new cron.CronJob(
         "0 0 0 * * *",
@@ -287,6 +293,16 @@ client.on("interactionCreate", async (interaction) => {
                 content: "Vous n'êtes inscrit à aucune séance",
                 ephemeral: true,
             });
+        } else if (commandName === "ticket") {
+            const user = await getUser(interaction.user);
+            if (user) {
+                // Send private message to user
+                return interaction.user.send({
+                    content: `Bonjour ${user.firstname},\n\nVoici votre ticket pour la séance `,
+                    files: [new AttachmentBuilder("./src/antrebloc.png")],
+                });
+            }
+            return;
         }
     } else if (interaction.isButton()) {
         // if the interaction is a button
