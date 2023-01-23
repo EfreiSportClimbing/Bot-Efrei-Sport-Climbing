@@ -2,6 +2,7 @@ import url from "url";
 import axios from "axios";
 import cron, { CronJob } from "cron";
 import * as data from "./config.json" assert { type: "json" };
+import { sendTicket } from "./index.js";
 const {
   HELLO_ASSO_CLIENT_ID,
   HELLO_ASSO_CLIENT_SECRET,
@@ -12,6 +13,7 @@ const {
 let accessToken = null;
 let refreshToken = null;
 let refreshInterval = null;
+let date = new Date("2023-01-23T12:43:02.195Z");
 
 async function getAccessToken() {
   if (accessToken) {
@@ -77,17 +79,22 @@ var helloAssoTask = new cron.CronJob("* * * * *", async () => {
     .catch((error) => {
       throw error;
     });
-  
-  response.data.filter(() => true).forEach(async (a) => {
+  console.log(response.data.filter((order) =>new Date(order.date) > date) )
+  response.data.filter((order) =>new Date(order.date) > date).forEach(async (a) => {
     const infos = await axios
-      .get(`https://api.helloasso.com/v5/orders/${a.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((result) => result.data);
+    .get(`https://api.helloasso.com/v5/orders/${a.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((result) => result.data);
     // console.log(b.id);
-    console.log( JSON.stringify(infos.items[0].customFields));
+    infos.items.forEach((item) => {
+      if(item.customFields && item.customFields.length > 0){
+        const userId = item.customFields?.find((field) => field.name === "pseudo discord")?.answer 
+        sendTicket(userId)
+      }
+    });
   });
 });
 
