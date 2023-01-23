@@ -73,7 +73,7 @@ const createEvent = (salle, date, user, channelId, messageId) => {
         start: date,
         end: new Date(date.getTime() + 2 * 60 * 60 * 1000),
         summary: `Séance à ${salle}`,
-        description: `Séance à ${salle} organisé par ${user.firstname} ${user.lastname}`,
+        description: `Séance à ${salle} organisée par ${user.firstname} ${user.lastname}`,
         location: salle,
         url: "https://discord.com/channels/" + guildId + "/" + channelId + "/" + messageId,
     });
