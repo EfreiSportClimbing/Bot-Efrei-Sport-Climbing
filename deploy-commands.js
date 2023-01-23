@@ -71,9 +71,6 @@ const commands = [
                 .setDescription("Promotion")
                 .addChoices({ name: "2023", value: "2023" }, { name: "2024", value: "2024" }, { name: "2025", value: "2025" }, { name: "2026", value: "2026" }, { name: "2027", value: "2027" })
         ),
-    new SlashCommandBuilder()
-        .setName("ticket")
-        .setDescription("Récupérer son ticket")
 ].map((command) => command.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
