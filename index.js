@@ -21,6 +21,7 @@ import * as http from "http";
 import * as fs from "fs";
 import ical from "ical-generator";
 import helloAssoTask from "./helloasso.js";
+import { getFiles, getOneTicket } from "./firebase-storage.js";
 
 // get config file
 const { token, guildId, globalIp, host, port } = data.default;
@@ -188,15 +189,17 @@ const loadCalendar = async () => {
 const sendTicket = async (userId) => {
   const member = await client.guilds.cache.get(guildId).members.fetch(userId);
   const user = await getUser(member);
+  const ticket = await getOneTicket();
   member.send({
-    content: `Bonjour ${user.firstname},\n\nVoici votre ticket pour la séance `,
-    files: [new AttachmentBuilder("./src/antrebloc.png")],
+    content: `Bonjour ${user.firstname},\n\nVoici votre ticket pour la séance : ${ticket} `,
+    // files: [new AttachmentBuilder("./src/antrebloc.png")],
   });
 };
 
 client.once("ready", async () => {
   console.log("Ready!");
   helloAssoTask.start();
+  // console.log(await getOneTicket())
   await loadCalendar();
   let deleteDay = new cron.CronJob(
     "0 0 0 * * *",

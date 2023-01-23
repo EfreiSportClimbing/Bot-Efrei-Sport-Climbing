@@ -1,4 +1,5 @@
 import firebase from "firebase";
+
 import * as data from "./config.json" assert { type: "json" };
 const {
   apiKey,
@@ -28,4 +29,7 @@ if (!firebase.apps.length) {
 }
 let firestore = firebase.firestore();
 
-export { firestore };
+const storage = firebase.storage();
+var storageRef = storage.ref();
+
+export { firestore, storage, storageRef};

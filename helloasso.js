@@ -11,6 +11,10 @@ const {
   CLIMBUP_FORM_SLUG,
 } = data.default;
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const db = new Datastore({ filename: "./data/date.db", autoload: true });
 
 let accessToken = null;
@@ -103,6 +107,7 @@ var helloAssoTask = new cron.CronJob("* * * * *", async () => {
             (field) => field.name === "pseudo discord"
           )?.answer;
           sendTicket(userId);
+          sleep(30000);
         }
       });
     });

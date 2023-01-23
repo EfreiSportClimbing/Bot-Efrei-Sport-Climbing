@@ -34,7 +34,7 @@ async function addOne(user) {
                 .update({ nb_seance: parseInt(docRef.data().nb_seance) + 1 });
         })
         .catch(() => {
-            throw new Error("Veuillez vous inscrire avec la commande /inscription");
+            throw new Error("Veuillez vous inscrire avec la commande `/inscription`");
         });
 }
 
