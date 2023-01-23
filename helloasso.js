@@ -3,6 +3,7 @@ import axios from "axios";
 import cron, { CronJob } from "cron";
 import * as data from "./config.json" assert { type: "json" };
 import { sendTicket } from "./index.js";
+import Datastore from "nedb-promises";
 const {
   HELLO_ASSO_CLIENT_ID,
   HELLO_ASSO_CLIENT_SECRET,
@@ -10,10 +11,15 @@ const {
   CLIMBUP_FORM_SLUG,
 } = data.default;
 
+const db = new Datastore({ filename: "./data/date.db", autoload: true });
+
 let accessToken = null;
 let refreshToken = null;
 let refreshInterval = null;
-let date = new Date("2023-01-23T12:43:02.195Z");
+const dbDate = await db.find({}).then((doc) => {
+  return doc[0].date;
+}).catch( () => new Date());
+let date = new Date(await dbDate);
 
 async function getAccessToken() {
   if (accessToken) {
@@ -79,23 +85,32 @@ var helloAssoTask = new cron.CronJob("* * * * *", async () => {
     .catch((error) => {
       throw error;
     });
-  console.log(response.data.filter((order) =>new Date(order.date) > date) )
-  response.data.filter((order) =>new Date(order.date) > date).forEach(async (a) => {
-    const infos = await axios
-    .get(`https://api.helloasso.com/v5/orders/${a.id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then((result) => result.data);
-    // console.log(b.id);
-    infos.items.forEach((item) => {
-      if(item.customFields && item.customFields.length > 0){
-        const userId = item.customFields?.find((field) => field.name === "pseudo discord")?.answer 
-        sendTicket(userId)
-      }
+  console.log(response.data.filter((order) => new Date(order.date) > date));
+  response.data
+    .filter((order) => new Date(order.date) > date)
+    .forEach(async (a) => {
+      const infos = await axios
+        .get(`https://api.helloasso.com/v5/orders/${a.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((result) => result.data);
+      // console.log(b.id);
+      infos.items.forEach((item) => {
+        if (item.customFields && item.customFields.length > 0) {
+          const userId = item.customFields?.find(
+            (field) => field.name === "pseudo discord"
+          )?.answer;
+          sendTicket(userId);
+        }
+      });
     });
-  });
+
+  // set the new date in db
+  await db.update({}, { date: new Date() }, {multi: true});
+  date = new Date()
+  console.log("updated");
 });
 
 export default helloAssoTask;
