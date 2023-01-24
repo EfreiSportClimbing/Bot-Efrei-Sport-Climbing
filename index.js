@@ -47,6 +47,13 @@ const deleteSceances = async () => {
         const message = await channel.messages.fetch(séance._id);
         await message.delete();
         await db.remove({ _id: séance._id });
+
+        // remove event from calendar
+        const event = calendar.events().find((event) => event.location().title === séance.salle && event.start().getTime() === séance.date.getTime());
+        if (event) {
+            const events = calendar.events().filter((event) => event.location().title !== séance.salle && event.start().getTime() !== séance.date.getTime());
+            calendar.data.events = events;
+        }
     });
 };
 
