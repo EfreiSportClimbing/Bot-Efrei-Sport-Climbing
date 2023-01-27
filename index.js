@@ -413,11 +413,11 @@ client.on("interactionCreate", async (interaction) => {
         );
         activites
           .filter((a) => a.nb_seance > 0)
+          let text = ""
           .forEach((activite) => {
-            interaction.user.send(
-              `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}`
-            );
+            text += `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}+\n`
           });
+        interaction.user.send(`\`${text}\``);
         interaction.user.send("Bonne grimpe !");
         // set activity to 0 for all users
         await resetAll();
