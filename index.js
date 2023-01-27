@@ -417,7 +417,7 @@ client.on("interactionCreate", async (interaction) => {
           .forEach((activite) => {
             text += `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}+\n`
           });
-        interaction.user.send(`\`${text}\``);
+        interaction.user.send(`\`\`\`${text}\`\`\``);
         interaction.user.send("Bonne grimpe !");
         // set activity to 0 for all users
         await resetAll();
