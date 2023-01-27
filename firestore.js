@@ -89,15 +89,42 @@ async function getAll() {
         .get()
         .then(async (docRef) => {
             const data = docRef.docs.map((doc) => doc.data());
-            console.log(data);
-            const today = new Date();
-            const date = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear();
-            // write to a new file named `table${today}.txt`
-            fs.writeFile(`table-${date}.txt`, data);
+            return data;
+            // console.log(data);
+            // const today = new Date();
+            // const date = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear();
+            // // write to a new file named `table${today}.txt`
+            // fs.writeFile(`table-${date}.txt`, data);
         })
         .catch(async () => {
             return [];
         });
 }
 
-export { addOne, removeOne, getOne, getAll, registerUser, getUser };
+async function resetAll() {
+    return await firestore
+        .collection("users")
+        .get()
+        .then(async (docRef) => {
+            const data = docRef.docs.map((doc) => {
+                firestore
+                    .collection("users")
+                    .doc(doc.id)
+                    .update({ nb_seance: 0 });
+                return doc.data();
+            });
+            console.log(data);
+            // data.forEach(async (user) => {
+            //     await firestore
+            //         .collection("users")
+            //         .doc()
+            //         .update({ nb_seance: 0 });
+            // });
+        })
+        .catch(async () => {
+            return [];
+        });
+}
+
+
+export { addOne, removeOne, getOne, getAll, registerUser, getUser, resetAll };

@@ -15,6 +15,8 @@ import {
   getOne,
   registerUser,
   getUser,
+  getAll,
+  resetAll,
 } from "./firestore.js";
 import * as data from "./config.json" assert { type: "json" };
 import * as http from "http";
@@ -396,6 +398,35 @@ client.on("interactionCreate", async (interaction) => {
         content: "Vous n'êtes inscrit à aucune séance",
         ephemeral: true,
       });
+    } else if (commandName === "relevé") {
+      if (
+        interaction.user.id === "390515869161357319" ||
+        interaction.user.id === "418123640136269824"
+      ) {
+        // get all the activities of all users
+        const activites = await getAll();
+        // sort by number of activities
+        activites.sort((a, b) => b.nb_seance - a.nb_seance);
+        // send it to the user
+        interaction.user.send(
+          "Voici le relevé des activités de tous les grimpeurs :"
+        );
+        activites
+          .filter((a) => a.nb_seance > 0)
+          .forEach((activite) => {
+            interaction.user.send(
+              `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}`
+            );
+          });
+        interaction.user.send("Bonne grimpe !");
+        // set activity to 0 for all users
+        await resetAll();
+        return;
+      } else {}
+        // return interaction.reply({
+        //   content: "Vous n'avez pas les droits pour faire cette commande",
+        //   ephemeral: true,
+        // });
     }
   } else if (interaction.isButton()) {
     // if the interaction is a button
@@ -500,4 +531,4 @@ server.listen(port, host, () => {
   console.log(`Server is running on http://${host}:${port}`);
 });
 
-export {sendTicket};
+export { sendTicket };
