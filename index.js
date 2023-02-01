@@ -194,7 +194,7 @@ const sendTicket = async (userId) => {
     const ticket = await getOneTicket();
     member.send({
         content: `Bonjour ${user.firstname},\n\nVoici votre ticket pour la séance : ${ticket} `,
-        // files: [new AttachmentBuilder("./src/antrebloc.png")],
+        // files: [new AttachmentBuilder("./images/antrebloc.png")],
     });
 };
 
@@ -350,7 +350,7 @@ client.on("interactionCreate", async (interaction) => {
                 button2.setLabel("Se désinscrire");
                 button2.setStyle("Danger");
                 // add image
-                const image = new AttachmentBuilder("./src/" + salle + ".png");
+                const image = new AttachmentBuilder("./images/" + salle + ".png");
 
                 // send message
                 const channelId = channels.find(
