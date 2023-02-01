@@ -12,7 +12,7 @@ const {
 } = data.default;
 
 function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const db = new Datastore({ filename: "./data/date.db", autoload: true });
@@ -22,7 +22,7 @@ let refreshToken = null;
 let refreshInterval = null;
 const dbDate = await db.find({}).then((doc) => {
   return doc[0].date;
-}).catch( () => new Date());
+}).catch(() => new Date());
 let date = new Date(await dbDate);
 
 async function getAccessToken() {
@@ -71,7 +71,7 @@ async function refreshAccessToken() {
     });
 }
 
-var helloAssoTask = new cron.CronJob("* * * * *", async () => {
+var helloAssoTask = async () => {
   console.log("task running");
   const token = await getAccessToken();
   const response = await axios
@@ -104,7 +104,7 @@ var helloAssoTask = new cron.CronJob("* * * * *", async () => {
       infos.items.forEach((item) => {
         if (item.customFields && item.customFields.length > 0) {
           const userId = item.customFields?.find(
-            (field) => field.name === "pseudo discord"
+            (field) => field.name === "Identifiant"
           )?.answer;
           sendTicket(userId);
           sleep(30000);
@@ -113,10 +113,10 @@ var helloAssoTask = new cron.CronJob("* * * * *", async () => {
     });
 
   // set the new date in db
-  await db.update({}, { date: new Date() }, {multi: true});
+  await db.update({}, { date: new Date() }, { multi: true });
   date = new Date()
   console.log("updated");
-});
+};
 
 export default helloAssoTask;
 

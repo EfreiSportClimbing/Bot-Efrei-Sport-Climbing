@@ -546,7 +546,6 @@ app.post("/helloasso", async (request, reply) => {
     }
 });
 
-
 app.listen({
     port: port,
     host: host,

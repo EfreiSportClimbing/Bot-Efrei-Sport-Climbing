@@ -113,13 +113,6 @@ async function resetAll() {
                     .update({ nb_seance: 0 });
                 return doc.data();
             });
-            console.log(data);
-            // data.forEach(async (user) => {
-            //     await firestore
-            //         .collection("users")
-            //         .doc()
-            //         .update({ nb_seance: 0 });
-            // });
         })
         .catch(async () => {
             return [];
