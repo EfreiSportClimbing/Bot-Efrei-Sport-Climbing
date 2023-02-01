@@ -19,14 +19,14 @@ import {
     resetAll,
 } from "./firestore.js";
 import * as data from "./config.json" assert { type: "json" };
-import * as http from "fastify";
+import Fastify from 'fastify'
 import * as fs from "fs";
 import ical from "ical-generator";
-import helloAssoTask from "./helloasso.js";
+//import helloAssoTask from "./helloasso.js";
 import { getFiles, getOneTicket } from "./firebase-storage.js";
 
 // get config file
-const { token, guildId, https_key, https_cert, host } = data.default;
+const { token, guildId, https_key, https_cert, host, port } = data.default;
 
 const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
 calendar.source("http://localhost/data/calendar.ical");
@@ -200,7 +200,7 @@ const sendTicket = async (userId) => {
 
 client.once("ready", async () => {
     console.log("Ready!");
-    helloAssoTask.start();
+    //helloAssoTask.start();
     // console.log(await getOneTicket())
     await loadCalendar();
     let deleteDay = new cron.CronJob(
@@ -520,17 +520,36 @@ client.on("interactionCreate", async (interaction) => {
 
 client.login(token);
 
-const app = fastify();
+const app = Fastify();
 
 app.get("/calendar.ical", async (request, reply) => {
-    return calendar.serve(reply);
+    return calendar.serve(reply.raw);
 });
 
-app.listen({
-    http2: true, https: {
-        key: fs.readFileSync(https_key),
-        cert: fs.readFileSync(https_cert),
+app.post("/helloasso", async (request, reply) => {
+    const body = request.body;
+    const { data } = body;
+
+    //console.log(data, data?.formSlug);
+    if (data?.formSlug === "places-climbup") {
+        console.log("start");
+        const { items } = data;
+        const item = items[0];
+
+        const { firstName, lastName } = item.user;
+        console.log("user :", firstName, lastName);
+
+        const { answer } = item.customFields.find((field) => field.name == "Identifiant");
+        console.log("data :", firstName, lastName, answer);
+    } else {
+        console.log("no data !");
     }
+});
+
+
+app.listen({
+    port: port,
+    host: host,
 });
 
 export { sendTicket };
