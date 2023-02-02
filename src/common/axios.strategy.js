@@ -1,12 +1,11 @@
 import axios from "axios";
-import mem from "mem";
-import * as data from "./config.json" assert { type: "json" };
-import localStorage from "./src/common/localStorage.js";
+import * as data from "../../config.json" assert { type: "json" };
+import localStorage from "./localStorage.js";
 
-const { apiUrl, authUrl, clientId, clientSecret } = data.default.helloasso;
+const { API_URL, AUTH_URL, CLIENT_ID, CLIENT_SECRET } = data.default.helloasso;
 
-export const axiosPublic = axios.create({
-    baseURL: apiUrl,
+const axiosPublic = axios.create({
+    baseURL: API_URL,
     headers: {
         "Content-Type": "application/json",
     },
@@ -17,9 +16,9 @@ const refreshToken = async () => {
 
     try {
         const { data } = await axiosPublic.post(
-            `${authUrl}/token`,
+            `${AUTH_URL}/token`,
             {
-                client_id: clientId,
+                client_id: CLIENT_ID,
                 grant_type: "refresh_token",
                 refresh_token: session.refreshToken,
             },
@@ -46,10 +45,10 @@ const refreshToken = async () => {
         return session;
     } catch (error) {
         const { data } = await axiosPublic.post(
-            `${authUrl}/token`,
+            `${AUTH_URL}/token`,
             {
-                client_id: clientId,
-                client_secret: clientSecret,
+                client_id: CLIENT_ID,
+                client_secret: CLIENT_SECRET,
                 grant_type: "client_credentials",
             },
             {
@@ -75,12 +74,8 @@ const refreshToken = async () => {
     }
 };
 
-const maxAge = 10000;
-
-const memoizedRefreshToken = mem(refreshToken, { maxAge });
-
 const axiosPrivate = axios.create({
-    baseURL: apiUrl,
+    baseURL: API_URL,
     headers: {
         "Content-Type": "application/json",
     },
@@ -88,9 +83,9 @@ const axiosPrivate = axios.create({
 
 axiosPrivate.interceptors.request.use(
     async (config) => {
-        const session = await memoizedRefreshToken();
+        const session = await localStorage.getItem("session");
 
-        config.headers.Authorization = `Bearer ${session.accessToken}`;
+        config.headers.Authorization = `Bearer ${session?.accessToken}`;
 
         return config;
     },
@@ -107,7 +102,7 @@ axiosPrivate.interceptors.response.use(
         if (error?.response?.status === 401 && !config?.sent) {
             config.sent = true;
 
-            const result = await memoizedRefreshToken();
+            const result = await refreshToken();
 
             if (result?.accessToken) {
                 config.headers = {

@@ -1,36 +1,21 @@
 import Datastore from "nedb-promises";
-import {
-    Client,
-    GatewayIntentBits,
-    EmbedBuilder,
-    Partials,
-    ButtonBuilder,
-    ActionRowBuilder,
-    AttachmentBuilder,
-} from "discord.js";
+import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder, AttachmentBuilder } from "discord.js";
 import cron from "cron";
-import {
-    addOne,
-    removeOne,
-    getOne,
-    registerUser,
-    getUser,
-    getAll,
-    resetAll,
-} from "./firestore.js";
-import * as data from "./config.json" assert { type: "json" };
-import Fastify from 'fastify'
+import { addOne, removeOne, getOne, registerUser, getUser, getAll, resetAll } from "./firebase/firestore.js";
+import * as data from "../config.json" assert { type: "json" };
+import Fastify from "fastify";
 import * as fs from "fs";
 import ical from "ical-generator";
-//import helloAssoTask from "./helloasso.js";
-import { getFiles, getOneTicket } from "./firebase-storage.js";
+import { fetchOrders } from "./helloasso/helloasso.orders.js";
+import { getFiles, getOneTicket } from "./firebase/firebase-storage.js";
 
 // get config file
-const { token, guildId, https_key, https_cert, host, port } = data.default;
+const { TOKEN, GUILD_ID } = data.default.discord;
+const { SSL_KEY, SSL_CERT, HOST, PORT } = data.default.fastify;
 
-const calendar = ical({ domain: host, name: "Efrei Sport Climbing" });
-calendar.source("http://localhost/data/calendar.ical");
-calendar.url("http://localhost/data/calendar.ical");
+const calendar = ical({ domain: HOST, name: "Efrei Sport Climbing" });
+calendar.source("http://localHOST/data/calendar.ical");
+calendar.url("http://localHOST/data/calendar.ical");
 calendar.ttl(60);
 calendar.timezone("Europe/Paris");
 
@@ -39,11 +24,7 @@ const db = new Datastore({ filename: "./data/cache.db", autoload: true });
 
 // Create a new client instance
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMembers,
-    ],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers],
     partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -57,24 +38,14 @@ const channels = [
     { name: "annonces", channelId: "755109496182931476" },
 ];
 
-const days = [
-    "dimanche",
-    "lundi",
-    "mardi",
-    "mercredi",
-    "jeudi",
-    "vendredi",
-    "samedi",
-];
+const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
 const deleteSceances = async () => {
     const séances = await db.find({
         date: { $lt: new Date() },
     });
     séances.forEach(async (séance) => {
-        const channelId = channels.find(
-            (channel) => channel.name === séance.salle
-        ).channelId;
+        const channelId = channels.find((channel) => channel.name === séance.salle).channelId;
         const channel = client.channels.cache.get(channelId);
         const message = await channel.messages.fetch(séance._id);
         await message.delete();
@@ -107,13 +78,7 @@ const createEvent = (salle, date, user, channelId, messageId) => {
         summary: `Séance à ${salle}`,
         description: `Séance à ${salle} organisée par ${user.firstname} ${user.lastname}`,
         location: salle,
-        url:
-            "https://discord.com/channels/" +
-            guildId +
-            "/" +
-            channelId +
-            "/" +
-            messageId,
+        url: "https://discord.com/channels/" + GUILD_ID + "/" + channelId + "/" + messageId,
     });
     event.createAttendee({
         name: user.firstname + " " + user.lastname,
@@ -122,13 +87,7 @@ const createEvent = (salle, date, user, channelId, messageId) => {
 };
 
 const addUserToEvent = (salle, date, user) => {
-    const event = calendar
-        .events()
-        .find(
-            (event) =>
-                event.location().title === salle &&
-                event.start().getTime() === date.getTime()
-        );
+    const event = calendar.events().find((event) => event.location().title === salle && event.start().getTime() === date.getTime());
     if (event) {
         event.createAttendee({
             name: user.firstname + " " + user.lastname,
@@ -139,25 +98,12 @@ const addUserToEvent = (salle, date, user) => {
 
 const removeUserFromEvent = (salle, date, user) => {
     const event = calendar.events().find((event) => {
-        return (
-            event.location().title === salle &&
-            event.start().getTime() === date.getTime()
-        );
+        return event.location().title === salle && event.start().getTime() === date.getTime();
     });
     if (event) {
-        const attendees = event
-            .attendees()
-            .filter(
-                (attendee) => attendee.name() !== user.firstname + " " + user.lastname
-            );
+        const attendees = event.attendees().filter((attendee) => attendee.name() !== user.firstname + " " + user.lastname);
         if (attendees.length === 0) {
-            const events = calendar
-                .events()
-                .filter(
-                    (event) =>
-                        event.location().title !== salle &&
-                        event.start().getTime() !== date.getTime()
-                );
+            const events = calendar.events().filter((event) => event.location().title !== salle && event.start().getTime() !== date.getTime());
             calendar.data.events = events;
         } else {
             event.data.attendees = attendees;
@@ -168,20 +114,12 @@ const removeUserFromEvent = (salle, date, user) => {
 const loadCalendar = async () => {
     const seances = await db.find({});
     seances.forEach(async (seance) => {
-        const user = await getUser(
-            await client.guilds.cache
-                .get(guildId)
-                .members.fetch(seance.participants[0])
-        );
-        const channel = channels.find(
-            (channel) => channel.name === seance.salle
-        ).channelId;
+        const user = await getUser(await client.guilds.cache.get(GUILD_ID).members.fetch(seance.participants[0]));
+        const channel = channels.find((channel) => channel.name === seance.salle).channelId;
         createEvent(seance.salle, seance.date, user, channel, seance._id);
         seance.participants.forEach(async (participantId, index) => {
             if (index !== 0) {
-                const user = await getUser(
-                    await client.guilds.cache.get(guildId).members.fetch(participantId)
-                );
+                const user = await getUser(await client.guilds.cache.get(GUILD_ID).members.fetch(participantId));
                 addUserToEvent(seance.salle, seance.date, user);
             }
         });
@@ -189,7 +127,7 @@ const loadCalendar = async () => {
 };
 
 const sendTicket = async (userId) => {
-    const member = await client.guilds.cache.get(guildId).members.fetch(userId);
+    const member = await client.guilds.cache.get(GUILD_ID).members.fetch(userId);
     const user = await getUser(member);
     const ticket = await getOneTicket();
     member.send({
@@ -200,7 +138,7 @@ const sendTicket = async (userId) => {
 
 client.once("ready", async () => {
     console.log("Ready!");
-    //helloAssoTask.start();
+    console.log(await fetchOrders());
     // console.log(await getOneTicket())
     await loadCalendar();
     let deleteDay = new cron.CronJob(
@@ -217,10 +155,7 @@ client.once("ready", async () => {
 
 client.on("interactionCreate", async (interaction) => {
     // check the role of the user
-    if (
-        !interaction.member.roles.cache.has("752444499795640360") &&
-        !interaction.member.roles.cache.has("1032031670964072650")
-    ) {
+    if (!interaction.member.roles.cache.has("752444499795640360") && !interaction.member.roles.cache.has("1032031670964072650")) {
         return interaction.reply({
             content: `Vous avez besoin du role <@&752444499795640360> ou <@&1032031670964072650> pour utiliser le bot.`,
             ephemeral: true,
@@ -280,26 +215,17 @@ client.on("interactionCreate", async (interaction) => {
                 }
 
                 // update message
-                const messageChanel = channels.find(
-                    (channel) => channel.name === salle
-                );
-                const channelInstance = client.channels.cache.get(
-                    messageChanel.channelId
-                );
+                const messageChanel = channels.find((channel) => channel.name === salle);
+                const channelInstance = client.channels.cache.get(messageChanel.channelId);
                 const message = await channelInstance.messages.fetch(session._id);
                 const embed = message.embeds[0];
                 const newEmbed = new EmbedBuilder(embed.data);
-                const field = newEmbed.data.fields?.find((field) =>
-                    field.name.includes("Participants")
-                );
+                const field = newEmbed.data.fields?.find((field) => field.name.includes("Participants"));
                 if (field) {
                     field.value += `\n- ${user.firstname} ${user.lastname}`;
                     // update databases
                     await addOne(interaction.user);
-                    db.updateOne(
-                        { _id: session._id },
-                        { $push: { participants: interaction.user.id } }
-                    );
+                    db.updateOne({ _id: session._id }, { $push: { participants: interaction.user.id } });
 
                     //update event
                     addUserToEvent(salle, date, user);
@@ -330,9 +256,7 @@ client.on("interactionCreate", async (interaction) => {
                         minute: "numeric",
                     })
                 );
-                embed.setDescription(
-                    `Séance de grimpe à **${interaction.options.getString("salle")}**.`
-                );
+                embed.setDescription(`Séance de grimpe à **${interaction.options.getString("salle")}**.`);
                 embed.addFields({
                     name: "Participants :",
                     value: "- " + user.firstname + " " + user.lastname,
@@ -353,17 +277,13 @@ client.on("interactionCreate", async (interaction) => {
                 const image = new AttachmentBuilder("./images/" + salle + ".png");
 
                 // send message
-                const channelId = channels.find(
-                    (channel) => channel.name === salle
-                ).channelId;
+                const channelId = channels.find((channel) => channel.name === salle).channelId;
                 const channelInstance = client.channels.cache.get(channelId);
                 var messageId = await channelInstance
                     .send({
                         embeds: [embed],
                         files: [image],
-                        components: [
-                            new ActionRowBuilder().addComponents([button1, button2]),
-                        ],
+                        components: [new ActionRowBuilder().addComponents([button1, button2])],
                     })
                     .then((embedMessage) => embedMessage.id);
 
@@ -381,9 +301,7 @@ client.on("interactionCreate", async (interaction) => {
                 createEvent(salle, date, user, channelId, messageId);
 
                 // send confirmation
-                return interaction.reply(
-                    `Ajout d'une séance à **${salle}** le **${day}** à **${heure}h**`
-                );
+                return interaction.reply(`Ajout d'une séance à **${salle}** le **${day}** à **${heure}h**`);
             }
         } else if (commandName === "activité") {
             const activite = await getOne(interaction.user);
@@ -399,30 +317,24 @@ client.on("interactionCreate", async (interaction) => {
                 ephemeral: true,
             });
         } else if (commandName === "relevé") {
-            if (
-                interaction.user.id === "390515869161357319" ||
-                interaction.user.id === "418123640136269824"
-            ) {
+            if (interaction.user.id === "390515869161357319" || interaction.user.id === "418123640136269824") {
                 // get all the activities of all users
                 const activites = await getAll();
                 // sort by number of activities
                 activites.sort((a, b) => b.nb_seance - a.nb_seance);
                 // send it to the user
-                interaction.user.send(
-                    "Voici le relevé des activités de tous les grimpeurs :"
-                );
-                activites
-                    .filter((a) => a.nb_seance > 0)
-                let text = ""
-                    .forEach((activite) => {
-                        text += `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}+\n`
-                    });
+                interaction.user.send("Voici le relevé des activités de tous les grimpeurs :");
+                activites.filter((a) => a.nb_seance > 0);
+                let text = "".forEach((activite) => {
+                    text += `${activite.firstname} ${activite.lastname} : ${activite.nb_seance}+\n`;
+                });
                 interaction.user.send(`\`\`\`${text}\`\`\``);
                 interaction.user.send("Bonne grimpe !");
                 // set activity to 0 for all users
                 await resetAll();
                 return;
-            } else { }
+            } else {
+            }
             // return interaction.reply({
             //   content: "Vous n'avez pas les droits pour faire cette commande",
             //   ephemeral: true,
@@ -437,9 +349,7 @@ client.on("interactionCreate", async (interaction) => {
         if (buttonId == "join") {
             const séance = await db.findOne({ _id: message.id });
             const newEmbed = new EmbedBuilder(embed.data);
-            const field = newEmbed.data.fields?.find((field) =>
-                field.name.includes("Participants")
-            );
+            const field = newEmbed.data.fields?.find((field) => field.name.includes("Participants"));
 
             // check if the user is already in the participants list
             if (séance.participants.includes(interaction.user.id)) {
@@ -452,10 +362,7 @@ client.on("interactionCreate", async (interaction) => {
                 field.value += `\n- ${user.firstname} ${user.lastname}`;
                 // update databases
                 await addOne(interaction.user);
-                db.updateOne(
-                    { _id: séance._id },
-                    { $push: { participants: interaction.user.id } }
-                );
+                db.updateOne({ _id: séance._id }, { $push: { participants: interaction.user.id } });
 
                 //update event
                 addUserToEvent(séance.salle, séance.date, user);
@@ -471,9 +378,7 @@ client.on("interactionCreate", async (interaction) => {
         } else if (buttonId == "leave") {
             const séance = await db.findOne({ _id: message.id });
             const newEmbed = new EmbedBuilder(embed.data);
-            const field = newEmbed.data.fields?.find((field) =>
-                field.name.includes("Participants")
-            );
+            const field = newEmbed.data.fields?.find((field) => field.name.includes("Participants"));
 
             // check if the user is already in the participants list
             if (!séance.participants.includes(interaction.user.id)) {
@@ -483,16 +388,10 @@ client.on("interactionCreate", async (interaction) => {
                 });
             } else if (field) {
                 // update embed
-                field.value = field.value.replace(
-                    `- ${user.firstname} ${user.lastname}`,
-                    ""
-                );
+                field.value = field.value.replace(`- ${user.firstname} ${user.lastname}`, "");
                 // update databases
                 await removeOne(interaction.user);
-                db.updateOne(
-                    { _id: séance._id },
-                    { $pull: { participants: interaction.user.id } }
-                );
+                db.updateOne({ _id: séance._id }, { $pull: { participants: interaction.user.id } });
 
                 //update event
                 removeUserFromEvent(séance.salle, séance.date, user);
@@ -518,7 +417,7 @@ client.on("interactionCreate", async (interaction) => {
     });
 });
 
-client.login(token);
+client.login(TOKEN);
 
 const app = Fastify();
 
@@ -528,27 +427,15 @@ app.get("/calendar.ical", async (request, reply) => {
 
 app.post("/helloasso", async (request, reply) => {
     const body = request.body;
-    const { data } = body;
 
-    //console.log(data, data?.formSlug);
-    if (data?.formSlug === "places-climbup") {
-        console.log("start");
-        const { items } = data;
-        const item = items[0];
-
-        const { firstName, lastName } = item.user;
-        console.log("user :", firstName, lastName);
-
-        const { answer } = item.customFields.find((field) => field.name == "Identifiant");
-        console.log("data :", firstName, lastName, answer);
-    } else {
-        console.log("no data !");
+    if (body?.eventType === "Order") {
+        await checkOrder(body.data);
     }
 });
 
 app.listen({
-    port: port,
-    host: host,
+    port: PORT,
+    HOST: HOST,
 });
 
-export { sendTicket };
+export { sendTicket, app };
