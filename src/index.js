@@ -1,7 +1,7 @@
 import Datastore from "nedb-promises";
 import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder, AttachmentBuilder } from "discord.js";
 import cron from "cron";
-import { addOne, removeOne, getOne, registerUser, getUser, getAll, resetAll } from "./firebase/firestore.js";
+import { addOne, removeOne, getOne, registerUser, getUser, getAll, resetAll } from "./firebase/users.firestore.js";
 import * as data from "../config.json" assert { type: "json" };
 import Fastify from "fastify";
 import * as fs from "fs";
@@ -37,7 +37,6 @@ const channels = [
     { name: "climb-up-bordeaux", channelId: "1022523538986508360" },
     { name: "annonces", channelId: "755109496182931476" },
 ];
-
 const days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
 const deleteSceances = async () => {
