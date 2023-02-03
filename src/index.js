@@ -7,7 +7,7 @@ import Fastify from "fastify";
 import * as fs from "fs";
 import ical from "ical-generator";
 import { fetchOrders, checkOrder } from "./helloasso/helloasso.orders.js";
-import { getFiles, getOneTicket } from "./firebase/firebase-storage.js";
+import { getFilesRef, getOneTicket } from "./firebase/firebase-storage.js";
 
 // get config file
 const { TOKEN, GUILD_ID } = data.default.discord;
