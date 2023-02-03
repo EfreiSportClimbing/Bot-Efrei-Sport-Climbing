@@ -6,7 +6,7 @@ import * as data from "../config.json" assert { type: "json" };
 import Fastify from "fastify";
 import * as fs from "fs";
 import ical from "ical-generator";
-import { fetchOrders } from "./helloasso/helloasso.orders.js";
+import { fetchOrders, checkOrder } from "./helloasso/helloasso.orders.js";
 import { getFiles, getOneTicket } from "./firebase/firebase-storage.js";
 
 // get config file
@@ -427,8 +427,9 @@ app.get("/calendar.ical", async (request, reply) => {
 
 app.post("/helloasso", async (request, reply) => {
     const body = request.body;
-
+    console.log("we got a request", body.eventType);
     if (body?.eventType === "Order") {
+        console.log(body.data);
         await checkOrder(body.data);
     }
 });
@@ -438,4 +439,4 @@ app.listen({
     HOST: HOST,
 });
 
-export { sendTicket, app };
+export { sendTicket, app, client };

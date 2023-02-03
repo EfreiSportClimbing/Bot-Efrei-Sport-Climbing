@@ -1,5 +1,7 @@
 import { axiosPrivate, axiosPublic } from "../common/axios.strategy.js";
+import { checkClimbupOrder } from "./helloasso.shop.js";
 import * as data from "../../config.json" assert { type: "json" };
+import { client } from "../index.js";
 
 const { ORGANIZATION_SLUG, CLIMBUP_FORM_SLUG } = data.default.helloasso;
 
@@ -8,9 +10,13 @@ const { ORGANIZATION_SLUG, CLIMBUP_FORM_SLUG } = data.default.helloasso;
 // take an order as parameter
 export const checkOrder = async (order) => {
     console.log("order :", order?.formSlug, order?.formType);
-    order.items.forEach((item) => {
-        console.log("item :", item.id, item?.user, item?.customFields);
-    });
+
+    switch (order?.formSlug) {
+        case CLIMBUP_FORM_SLUG:
+            return await checkClimbupOrder(order);
+        default:
+            return false;
+    }
     return false;
 };
 
