@@ -1,123 +1,88 @@
 import { EmbedAssertions } from "discord.js";
 import { firestore } from "./firebase.js";
+import { addDoc, collection, getDoc, doc, setDoc, updateDoc, getDocs, increment, runTransaction } from "firebase/firestore";
 
 async function registerUser(user) {
-    const doc = await firestore
-        .collection("users")
-        .doc(user.id)
-        .get()
-        .then((docRef) => docRef.data());
-    if (doc) {
+    const docRef = doc(firestore, "users", user.id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
         throw new Error("Utilisateur déjà inscrit");
     }
-    await firestore
-        .collection("users")
-        .doc(user.id)
-        .set({
-            promo: user.promo,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            nb_seance: 0,
-        })
-        .then(() => console.log("user added : ", user));
+    await setDoc(docRef, {
+        promo: user.promo,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        nb_seance: 0,
+    });
 }
 
 async function addOne(user) {
-    await firestore
-        .collection("users")
-        .doc(user.id)
-        .get()
-        .then(async (docRef) => {
-            await firestore
-                .collection("users")
-                .doc(user.id)
-                .update({ nb_seance: parseInt(docRef.data().nb_seance) + 1 });
-        })
-        .catch(() => {
-            throw new Error("Veuillez vous inscrire avec la commande `/inscription`");
+    const docRef = doc(firestore, "users", user.id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        throw new Error("Veuillez vous inscrire avec la commande /inscription");
+    } else {
+        await updateDoc(docRef, {
+            nb_seance: increment(1),
         });
+    }
 }
 
 async function removeOne(user) {
-    await firestore
-        .collection("users")
-        .doc(user.id)
-        .get()
-        .then(async (docRef) => {
-            await firestore
-                .collection("users")
-                .doc(user.id)
-                .update({
-                    nb_seance: parseInt(docRef.data().nb_seance) > 0 ? parseInt(docRef.data().nb_seance) - 1 : 0,
-                });
-        })
-        .catch(() => {
-            throw new Error("Veuillez vous inscrire avec la commande /inscription");
+    const docRef = doc(firestore, "users", user.id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        throw new Error("Veuillez vous inscrire avec la commande /inscription");
+    } else {
+        await updateDoc(docRef, {
+            nb_seance: increment(-1),
         });
+    }
 }
 
 async function getUser(user) {
-    return await firestore
-        .collection("users")
-        .doc(user.id)
-        .get()
-        .then(async (docRef) => {
-            if (!docRef.data()) {
-                throw new Error("Veuillez vous inscrire avec la commande /inscription");
-            }
-            Object.assign(user, docRef.data());
-            return user;
-        });
+    const docRef = doc(firestore, "users", user.id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        throw new Error("Veuillez vous inscrire avec la commande /inscription");
+    } else {
+        Object.assign(user, docSnap.data());
+        console.log(user);
+        return user;
+    }
 }
 
 async function getOne(user) {
-    return await firestore
-        .collection("users")
-        .doc(user.id)
-        .get()
-        .then(async (docRef) => {
-            return docRef.data().nb_seance;
-        })
-        .catch(() => {
-            throw new Error("Veuillez vous inscrire avec la commande /inscription");
-        });
+    const docRef = doc(firestore, "users", user.id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        throw new Error("Veuillez vous inscrire avec la commande /inscription");
+    } else {
+        return docSnap.data().nb_seance;
+    }
 }
 
 async function getAll() {
-    return await firestore
-        .collection("users")
-        .get()
-        .then(async (docRef) => {
-            const data = docRef.docs.map((doc) => doc.data());
-            return data;
-            // console.log(data);
-            // const today = new Date();
-            // const date = today.getDate() + "-" + (today.getMonth() + 1) + "-" + today.getFullYear();
-            // // write to a new file named `table${today}.txt`
-            // fs.writeFile(`table-${date}.txt`, data);
-        })
-        .catch(async () => {
+    const collectionRef = collection(firestore, "users");
+    return getDocs(collectionRef)
+        .then((querySnapshot) => querySnapshot.map((doc) => doc.data()))
+        .catch((error) => {
+            console.log("Error getting documents: ", error);
             return [];
         });
 }
 
 async function resetAll() {
-    return await firestore
-        .collection("users")
-        .get()
-        .then(async (docRef) => {
-            const data = docRef.docs.map((doc) => {
-                firestore
-                    .collection("users")
-                    .doc(doc.id)
-                    .update({ nb_seance: 0 });
-                return doc.data();
-            });
-        })
-        .catch(async () => {
-            return [];
+    const collectionRef = collection(firestore, "users");
+    // update all documents in the collection
+    runTransaction(firestore, async (transaction) => {
+        const querySnapshot = await getDocs(collectionRef);
+        querySnapshot.forEach((doc) => {
+            transaction.update(doc.ref, { nb_seance: 0 });
         });
+    }).catch((error) => {
+        console.log("Transaction failed: ", error);
+    });
 }
 
-
-export { addOne, removeOne, getOne, getAll, registerUser, getUser, resetAll };
+export { addOne, removeOne, getOne, registerUser, getUser, getAll, resetAll };

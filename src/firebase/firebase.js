@@ -1,8 +1,10 @@
-import firebase from "firebase";
+import { initializeApp } from "@firebase/app";
+import { getFirestore } from "@firebase/firestore";
+import { getStorage, ref } from "@firebase/storage";
 import * as data from "../../config.json" assert { type: "json" };
 
+// Get the Firebase config from config.json
 const { apiKey, authDomain, projectId, databaseURL, storageBucket, messagingSenderId, appId } = data.default.firebase;
-// Required for side-effects
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,12 +18,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-if (!firebase.apps.length) {
-    const firebaseApp = firebase.initializeApp(firebaseConfig);
-}
-let firestore = firebase.firestore();
+const firebaseApp = initializeApp(firebaseConfig);
+// Initialize Firestore
+const firestore = getFirestore(firebaseApp);
 
-const storage = firebase.storage();
-var storageRef = storage.ref();
+// Initialize Storage
+const storage = getStorage(firebaseApp);
+const storageRef = ref(storage, "");
 
 export { firestore, storage, storageRef };

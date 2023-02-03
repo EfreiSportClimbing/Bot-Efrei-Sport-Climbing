@@ -19,7 +19,7 @@
         "discord-api-types": "^0.37.14",
         "discord.js": "^14.6.0",
         "fastify": "^4.12.0",
-        "firebase": "^8.10.0",
+        "firebase": "^9.0.0",
         "fs": "^0.0.1-security",
         "http": "^0.0.1-security",
         "ical-generator": "^3.6.1",

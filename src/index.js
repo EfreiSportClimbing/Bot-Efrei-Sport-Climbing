@@ -138,7 +138,7 @@ const sendTicket = async (userId) => {
 
 client.once("ready", async () => {
     console.log("Ready!");
-    console.log(await fetchOrders());
+    //console.log(await fetchOrders());
     // console.log(await getOneTicket())
     await loadCalendar();
     let deleteDay = new cron.CronJob(
@@ -182,10 +182,12 @@ client.on("interactionCreate", async (interaction) => {
             });
         }
     }
+    var user = await getUser(interaction.user);
     //get user info
     try {
         var user = await getUser(interaction.user);
     } catch (error) {
+        console.log(error);
         return interaction.reply({
             content: error.message,
             ephemeral: true,

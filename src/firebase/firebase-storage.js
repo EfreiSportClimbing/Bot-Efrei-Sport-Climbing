@@ -1,10 +1,20 @@
-import { mergeDefault } from "discord.js";
+import { ref, listAll, getMetadata, updateMetadata } from "@firebase/storage";
 import { storage, storageRef } from "./firebase.js";
 
 const getFiles = async () => {
-    const listRef = storageRef.child("");
-    const res = await listRef.listAll();
-    return res.items;
+    const files = await listAll(storageRef);
+    files.items.forEach(async (itemRef) => {
+        // All the items under listRef.
+        const { customMetadata } = await getMetadata(itemRef);
+        await updateMetadata(itemRef, {
+            customMetadata: {
+                used: "true",
+            },
+        });
+        const newMetadata = await getMetadata(itemRef);
+        console.log("old :", customMetadata, "\nnew :", newMetadata.customMetadata);
+    });
+    return files.items;
 };
 
 const getNotUsedTicket = async () => {
