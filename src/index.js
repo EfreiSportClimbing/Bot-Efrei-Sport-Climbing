@@ -8,8 +8,6 @@ import Fastify from "fastify";
 import * as fs from "fs";
 import ical from "ical-generator";
 import { fetchOrders, checkOrder } from "./helloasso/helloasso.orders.js";
-import { queueTasks } from "./helloasso/helloasso.orders.js";
-import { getFilesRef, getOneTicket } from "./firebase/firebase-storage.js";
 
 // get config file
 const { TOKEN, GUILD_ID } = data.default.discord;
@@ -429,12 +427,10 @@ app.get("/calendar.ical", async (request, reply) => {
 
 app.post("/helloasso", async (request, reply) => {
     const body = request.body;
+    console.log("New event", body);
     if (body?.eventType === "Order") {
-        if (!orderExists(body.data.id)) {
-            const me = Symbol();
-            await queueTasks.wait(me);
+        if (!(await orderExists(body.data.id))) {
             await checkOrder(body.data);
-            queueTasks.end(me);
         }
     }
 });

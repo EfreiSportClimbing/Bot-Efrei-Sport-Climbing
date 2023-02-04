@@ -6,22 +6,16 @@ const getFilesRef = async () => {
     return files.items;
 };
 
-const getUnusedTickets = async (number) => {
+const getUnusedTicket = async (orderId) => {
     const filesRef = await getFilesRef();
-    const tickets = [];
     for (const fileRef of filesRef) {
         const metadata = await getMetadata(fileRef);
         if (!metadata.customMetadata?.id) {
-            tickets.push(fileRef);
-        }
-        if (tickets.length === number) {
-            break;
+            await updateMetadata(fileRef, { customMetadata: { id: orderId } });
+            return fileRef;
         }
     }
-    if (tickets.length < number) {
-        throw new Error("Pas assez de tickets disponibles");
-    }
-    return tickets;
+    throw new Error("Pas assez de tickets disponibles");
 };
 
 const resetMetadata = async () => {
@@ -41,4 +35,4 @@ const getNTickets = async () => {
     return url;
 };
 
-export { getFilesRef, getNTickets as getOneTicket };
+export { getFilesRef, getUnusedTicket };

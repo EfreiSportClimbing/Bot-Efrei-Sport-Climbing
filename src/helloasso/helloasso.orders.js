@@ -10,6 +10,7 @@ export const queueTasks = new Queue(1);
 const { ORGANIZATION_SLUG, CLIMBUP_FORM_SLUG } = data.default.helloasso;
 
 export const checkOrder = async (order) => {
+    console.log("order", order);
     switch (order?.formSlug) {
         case CLIMBUP_FORM_SLUG:
             const me = Symbol();
