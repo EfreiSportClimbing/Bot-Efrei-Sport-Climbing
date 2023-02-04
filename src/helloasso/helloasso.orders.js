@@ -2,51 +2,54 @@ import { axiosPrivate, axiosPublic } from "../common/axios.strategy.js";
 import { checkClimbupOrder } from "./helloasso.shop.js";
 import * as data from "../../config.json" assert { type: "json" };
 import { client } from "../index.js";
+import { orderExists } from "../firebase/orders.firestore.js";
+import { Queue } from "async-await-queue";
+
+export const queueTasks = new Queue(1);
 
 const { ORGANIZATION_SLUG, CLIMBUP_FORM_SLUG } = data.default.helloasso;
 
-// function that check if an order has been treated or not
-// return true if the order has been treated and false if not
-// take an order as parameter
 export const checkOrder = async (order) => {
-    console.log("order :", order?.formSlug, order?.formType);
-
     switch (order?.formSlug) {
         case CLIMBUP_FORM_SLUG:
-            return await checkClimbupOrder(order);
+            const me = Symbol();
+            await queueTasks.wait(me);
+            await checkClimbupOrder(order);
+            queueTasks.end(me);
         default:
-            return false;
+            return;
     }
-    return false;
 };
 
-// fetch all orders and check if they have been treated or not
+// fetch all orders from HelloAsso
 export const fetchOrders = async () => {
-    // list all orders
+    // define a variable to stop the loop
     let finished = false;
-    const response = await axiosPrivate.get(`/organizations/${ORGANIZATION_SLUG}/orders?withDetails=true`);
+    var { data, pagination } = { data: [], pagination: { pageIndex: 0, totalPages: 1 } };
 
-    async function checkPage(data, pagination) {
-        for (let index = 0; index < pagination?.pageSize; index++) {
-            const order = data[index];
-            if (order) {
-                const treated = await checkOrder(order);
-                if (treated) {
-                    finished = true;
-                    break;
+    // loop through all pages while the current page is not the last one and the order has not been treated
+    while (pagination?.pageIndex < pagination?.totalPages && !finished) {
+        const response = await axiosPrivate.get(`/organizations/${ORGANIZATION_SLUG}/orders`, {
+            params: {
+                continuationToken: pagination?.continuationToken,
+                withDetails: true,
+            },
+        });
+
+        if (response?.data) {
+            var { data, pagination } = response.data;
+
+            for (let index = 0; index < pagination?.pageSize; index++) {
+                const order = data[index];
+                if (order) {
+                    if (!(await orderExists(order.id))) {
+                        await checkOrder(order);
+                    } else {
+                        finished = true;
+                        break;
+                    }
                 }
             }
         }
-        if (pagination?.pageIndex < pagination?.totalPages && !finished) {
-            const response = await axiosPrivate.get(`organizations/${ORGANIZATION_SLUG}/orders?continuationToken=${pagination?.continuationToken}&withDetails=true`);
-            if (response?.data) {
-                const { data, pagination } = response.data;
-                await checkPage(data, pagination);
-            }
-        }
-    }
-    if (response?.data) {
-        const { data, pagination } = response.data;
-        checkPage(data, pagination);
     }
 };

@@ -2,11 +2,13 @@ import Datastore from "nedb-promises";
 import { Client, GatewayIntentBits, EmbedBuilder, Partials, ButtonBuilder, ActionRowBuilder, AttachmentBuilder } from "discord.js";
 import cron from "cron";
 import { addOne, removeOne, getOne, registerUser, getUser, getAll, resetAll } from "./firebase/users.firestore.js";
+import { orderExists } from "./firebase/orders.firestore.js";
 import * as data from "../config.json" assert { type: "json" };
 import Fastify from "fastify";
 import * as fs from "fs";
 import ical from "ical-generator";
 import { fetchOrders, checkOrder } from "./helloasso/helloasso.orders.js";
+import { queueTasks } from "./helloasso/helloasso.orders.js";
 import { getFilesRef, getOneTicket } from "./firebase/firebase-storage.js";
 
 // get config file
@@ -137,8 +139,7 @@ const sendTicket = async (userId) => {
 
 client.once("ready", async () => {
     console.log("Ready!");
-    //console.log(await fetchOrders());
-    // console.log(await getOneTicket())
+    fetchOrders();
     await loadCalendar();
     let deleteDay = new cron.CronJob(
         "0 0 0 * * *",
@@ -428,10 +429,13 @@ app.get("/calendar.ical", async (request, reply) => {
 
 app.post("/helloasso", async (request, reply) => {
     const body = request.body;
-    console.log("we got a request", body.eventType);
     if (body?.eventType === "Order") {
-        console.log(body.data);
-        await checkOrder(body.data);
+        if (!orderExists(body.data.id)) {
+            const me = Symbol();
+            await queueTasks.wait(me);
+            await checkOrder(body.data);
+            queueTasks.end(me);
+        }
     }
 });
 

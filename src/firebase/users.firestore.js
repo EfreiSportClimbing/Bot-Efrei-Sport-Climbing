@@ -1,4 +1,3 @@
-import { EmbedAssertions } from "discord.js";
 import { firestore } from "./firebase.js";
 import { addDoc, collection, getDoc, doc, setDoc, updateDoc, getDocs, increment, runTransaction } from "firebase/firestore";
 
